@@ -1,0 +1,744 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Guidelines for test developers &mdash; xtee_documentation 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="xtee_documentation 1.0 documentation" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="guidelines-for-test-developers">
+<h1>Guidelines for test developers<a class="headerlink" href="#guidelines-for-test-developers" title="Permalink to this headline">¶</a></h1>
+<p>There are several workflows for developing xPAD platform and component
+tests that should be executed in the CI system. This section describes such workflows.</p>
+<div class="section" id="developer-workflows">
+<h2>Developer workflows<a class="headerlink" href="#developer-workflows" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="simple-shell-scripts-executed-on-target">
+<h3>Simple shell scripts executed on target<a class="headerlink" href="#simple-shell-scripts-executed-on-target" title="Permalink to this headline">¶</a></h3>
+<p>To integrate existing test cases / test suites into the xPAD test
+execution environment, a small helper class is provided. Test cases and
+test suites should be installed during the build process according to
+the <a class="reference internal" href="#test-suite-conventions">Test suite conventions</a> below. This currently only supports the system
+tests type.</p>
+<div class="section" id="test-suite-conventions">
+<h4>Test suite conventions<a class="headerlink" href="#test-suite-conventions" title="Permalink to this headline">¶</a></h4>
+<p>A test suite consists of one folder containing a set of
+binaries/scripts.</p>
+<ul class="simple">
+<li>setup_suite: is executed once before the test suite is started</li>
+<li>setup: is executed before every test case is started</li>
+<li>teardown_suite: is executed once after the complete test suite is
+finished</li>
+<li>teardown: is executed once after each test case</li>
+<li>N test case binaries / scripts</li>
+</ul>
+<p>All binaries need to have an exit status of 0 on successful execution.
+All other exit statuses are treated as failure. If the execution of
+setup_suite indicates failure, the execution of the test suite is
+skipped and a failure is recorded. If teardown_suite indicates failure,
+only the failure is recorded and the results of the test cases remain
+unaffected. If the setup or teardown of a test case fails, the test case
+is marked as failed.</p>
+</div>
+<div class="section" id="google-test-suite-conventions">
+<h4>Google Test suite conventions<a class="headerlink" href="#google-test-suite-conventions" title="Permalink to this headline">¶</a></h4>
+<p>Google Tests based test suites can conform to the conventions mentioned above by
+wrapping the test suite with a Python module. In case of <em>system tests</em>, instead
+of plain binaries, it is also possible to use the test suite support along with
+Google Test binaries.</p>
+<p>In addition, the Google Tests suite folder can also provide the following
+<em>optional</em> text files</p>
+<ul class="simple">
+<li>An <cite>ENVIRONMENT-&lt;gtest_bin&gt;</cite> file which specifies the environment for the test
+case named <cite>&lt;gtest_bin&gt;</cite></li>
+<li>A file named <cite>ENVIRONMENT</cite>, which contains the global environment for the tests</li>
+</ul>
+<p>These files would specify the environment using the format:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ENV_VAR1</span><span class="o">=</span><span class="n">foo</span>
+<span class="n">ENV_VAR2</span><span class="o">=</span><span class="n">bar</span>
+</pre></div>
+</div>
+<p>There exists a helper <cite>create_gtest_support_script</cite> bbclass which automates the
+creation of the wrapper module and so helps ease the packaging and deployment of
+Google Test based test suites. This is described below.</p>
+<p>You may however also choose to customize the packaging and deployment of your
+Google Test based test suite as documented under <a class="reference internal" href="#integration-tests-created-with-google-test">Integration tests created with Google Test</a></p>
+</div>
+<div class="section" id="file-locations-and-test-suite-name">
+<h4>File locations and test suite name<a class="headerlink" href="#file-locations-and-test-suite-name" title="Permalink to this headline">¶</a></h4>
+<p>On the target device the test suites need to be installed to:</p>
+<div class="highlight-python"><div class="highlight"><pre>${SYSTEM_TESTS_TARGET_FILES_PATH}/&lt;testsuite&gt;
+           # (currently set to: ${libdir}/${PN}/tests/&lt;testsuite&gt;/)
+</pre></div>
+</div>
+<p>Each package needs at least one test suite called BAT (Build Acceptance
+Tests). This test suite will be executed on all CI instances. All other
+test suites are only executed on the bci.Team for the package.</p>
+<p>In the package recipe the packager needs to ensure that after the
+do_install step the needed test suite files are in the correct target
+location. Additionally, the package must inherit the
+create_test_support_script bbclass or the create_gtest_support_script
+bbclass depending on the type of the test suite.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre># Load automatic test suite generation support
+inherit create_test_support_script
+
+# Provide one test suite named &quot;BAT&quot;
+do_install_append() {
+    # Create the test suite folder
+    install -d &quot;${D}${SYSTEM_TESTS_TARGET_FILES_PATH}/BAT&quot;
+    # Install the test scripts into the folder
+    tar --no-same-owner --exclude-vcs -cpf - -C &quot;${S}/BAT&quot; . \
+        | tar --no-same-owner -xpf - -C &quot;${D}${SYSTEM_TESTS_TARGET_FILES_PATH}/BAT&quot;
+}
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Google Test based bbclass example:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre># Load automatic test suite generation support
+inherit create_gtest_support_script
+
+# Provide one test suite named &quot;BAT&quot;
+do_install_append() {
+    # Create the test suite folder
+    install -d &quot;${D}${SYSTEM_TESTS_TARGET_FILES_PATH}/BAT&quot;
+    # Install the test scripts into the folder
+    tar --no-same-owner --exclude-vcs -cpf - -C &quot;${S}/BAT&quot; . \
+        | tar --no-same-owner -xpf - -C &quot;${D}${SYSTEM_TESTS_TARGET_FILES_PATH}/BAT&quot;
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="standard-xtee-based-tests">
+<h3>Standard xTEE based tests<a class="headerlink" href="#standard-xtee-based-tests" title="Permalink to this headline">¶</a></h3>
+<p>Tests are Python scripts that either contain test classes or test
+functions. As the xPAD test execution environment is based on
+<a class="reference external" href="https://nose.readthedocs.org/en/latest/">python-nose</a> almost all features of <a class="reference external" href="https://nose.readthedocs.org/en/latest/">python-nose</a> can be used in
+the test scripts (see the examples <code class="docutils literal"><span class="pre">test_uname()</span></code> in chapter <a class="reference internal" href="#system-tests">System tests</a> or
+<code class="docutils literal"><span class="pre">test_sanity_001_run_command_rc_check()</span></code> in <a class="reference internal" href="#sdk-tests">SDK tests</a> below).</p>
+<div class="section" id="system-tests">
+<h4>System tests<a class="headerlink" href="#system-tests" title="Permalink to this headline">¶</a></h4>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Copyright (C) 2015. BMW Car IT GmbH. All rights reserved.</span>
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">assert_regexp_matches</span>
+
+<span class="kn">from</span> <span class="nn">mtee.testing.support.target_share</span> <span class="kn">import</span> <span class="n">TargetShare</span>
+<span class="kn">from</span> <span class="nn">mtee.testing.tools</span> <span class="kn">import</span> <span class="n">assert_process_returncode</span><span class="p">,</span> <span class="n">metadata</span>
+
+
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="s2">&quot;BAT&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TestTargetSystem</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c1"># test needs a target for execution</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">TargetShare</span><span class="p">()</span><span class="o">.</span><span class="n">target</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">setup_class</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="c1"># Class level setup method.</span>
+
+        <span class="c1"># This will be executed once before the first test method of the class</span>
+        <span class="c1"># is executed.</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">teardown_class</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="c1"># Class level teardown method.</span>
+
+        <span class="c1"># This will be executed once after the last test method of the class</span>
+        <span class="c1"># is executed.</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Setup needed for all test cases in the class. Will be executed before</span>
+        <span class="c1"># each test case is executed.</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">teardown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># teardown needed for all test cases in the class. Will be executed after</span>
+        <span class="c1"># each test case is executed.</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">test_uname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Verify that uname -a string is correct</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="s1">&#39;uname -a&#39;</span><span class="p">)</span>
+        <span class="n">assert_process_returncode</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="s2">&quot;Executing &#39;uname -a&#39; failed&quot;</span><span class="p">)</span>
+        <span class="n">assert_regexp_matches</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s2">&quot;^Linux.*&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_execute_command_bg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Start a process in background</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">execute_background_task</span><span class="p">(</span><span class="s2">&quot;tail -f /etc/hostname&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="c1"># pid can be received from the ctx object</span>
+        <span class="n">pid</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">pid</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">recv_stdout</span><span class="p">()</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">recv_stderr</span><span class="p">()</span>
+
+        <span class="c1"># DO SOMETHING HERE</span>
+        <span class="c1"># Close the process</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">test_execute_command_bg_as_ctx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Start a process in background</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">execute_background_task</span><span class="p">(</span><span class="s2">&quot;tail -f /etc/hostname&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">ctx</span><span class="p">:</span>
+            <span class="n">pid</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">pid</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">recv_stdout</span><span class="p">()</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">recv_stderr</span><span class="p">()</span>
+            <span class="c1"># DO SOMETHING HERE</span>
+        <span class="c1"># The process is automatically closed after leaving the context manager</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sdk-tests">
+<h4>SDK tests<a class="headerlink" href="#sdk-tests" title="Permalink to this headline">¶</a></h4>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">mtee.testing.tools</span> <span class="kn">import</span> <span class="n">assert_process_returncode</span><span class="p">,</span> <span class="n">run_command</span><span class="p">,</span> <span class="n">metadata</span>
+
+
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="s2">&quot;BAT&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TestsSanitySDK</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_sanity_001_run_command_rc_check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># SANITY_001 Test expected rc value check of run_command</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">run_command</span><span class="p">(</span><span class="s2">&quot;exit 1&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">assert_process_returncode</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="s2">&quot;Return code check for 1 failed ({actual})&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="advanced-test-features-generators-generator-decorator">
+<h4>Advanced test features (generators, generator decorator)<a class="headerlink" href="#advanced-test-features-generators-generator-decorator" title="Permalink to this headline">¶</a></h4>
+<p>If generators are used for testing, mixing between <strong>assert</strong> statements
+and <strong>yield</strong> statements should be avoided.</p>
+<p>Either only have yielded/generated cases in a test (like in <code class="docutils literal"><span class="pre">test\_generator</span></code> example below),
+or only assert statements. When both, single assert statements and generators, are used in
+a single test, the normal tests will not appear in the results. Only the yielded test results will appear.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<ul class="last">
+<li><p class="first">To get a properly formatted result and to determine which generated test failed,
+the set_description(function, param1, param2, ...) method should be called before the yield statement
+is executed. With this method additional information can be set that is relevant in the result.</p>
+</li>
+<li><p class="first">Once set_description() is called on a function, it is advised to call it before each yield  statement,
+otherwise the name will be the same for all yielded test which can cause problems in reporting.</p>
+</li>
+<li><p class="first">If a parameter is a path which includes the word &#8220;tmp&#8221; the path will be replaced to the string &#8220;tmp&#8221;.</p>
+<blockquote>
+<div><p>&#8220;/tmp/rnd/file.txt&#8221; -&gt; &#8220;tmp&#8221;</p>
+<p>&#8220;/var/pref_tmp/file.txt&#8221; -&gt; &#8220;tmp&#8221;</p>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<p>To ease the process of using test generators, a decorator was created, <code class="docutils literal"><span class="pre">nose_parametrize</span></code>.
+The decorator can not be used on classes, just on functions and methods.
+If used on class methods, for a more pleasant test run output, the test class should
+inherit from <code class="docutils literal"><span class="pre">PrettyPrintParameterized</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Examples:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">assert_true</span><span class="p">,</span> <span class="n">assert_process_returncode</span><span class="p">,</span> <span class="n">assert_regexp_matches</span><span class="p">,</span> <span class="n">metadata</span>
+
+<span class="kn">from</span> <span class="nn">mtee.testing.support.set_test_description</span> <span class="kn">import</span> <span class="n">set_description</span>
+
+
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="s2">&quot;BAT&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ExampleTest</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_nativesdk_support</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generator test if sdk supports needed features.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">symlink_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ash&quot;</span><span class="p">,</span> <span class="s2">&quot;busybox&quot;</span><span class="p">,</span> <span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="s2">&quot;chattr&quot;</span><span class="p">,</span> <span class="s2">&quot;chgrp&quot;</span><span class="p">,</span> <span class="s2">&quot;chmod&quot;</span><span class="p">,</span> <span class="s2">&quot;chown&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;cp&quot;</span><span class="p">,</span> <span class="s2">&quot;cpio&quot;</span><span class="p">,</span> <span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;dd&quot;</span><span class="p">,</span> <span class="s2">&quot;df&quot;</span><span class="p">,</span> <span class="s2">&quot;dmesg&quot;</span><span class="p">,</span> <span class="s2">&quot;dnsdomainname&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;dumpkmap&quot;</span><span class="p">,</span> <span class="s2">&quot;echo&quot;</span><span class="p">,</span> <span class="s2">&quot;egrep&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span> <span class="s2">&quot;fgrep&quot;</span><span class="p">,</span> <span class="s2">&quot;grep&quot;</span><span class="p">,</span> <span class="s2">&quot;gunzip&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;gzip&quot;</span><span class="p">,</span> <span class="s2">&quot;hostname&quot;</span><span class="p">,</span> <span class="s2">&quot;kill&quot;</span><span class="p">,</span> <span class="s2">&quot;ln&quot;</span><span class="p">,</span> <span class="s2">&quot;login&quot;</span><span class="p">,</span> <span class="s2">&quot;ls&quot;</span><span class="p">,</span> <span class="s2">&quot;mkdir&quot;</span><span class="p">,</span> <span class="s2">&quot;mknod&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;mktemp&quot;</span><span class="p">,</span> <span class="s2">&quot;more&quot;</span><span class="p">,</span> <span class="s2">&quot;mount&quot;</span><span class="p">,</span> <span class="s2">&quot;mv&quot;</span><span class="p">,</span> <span class="s2">&quot;netstat&quot;</span><span class="p">,</span> <span class="s2">&quot;pidof&quot;</span><span class="p">,</span> <span class="s2">&quot;ping&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;ping6&quot;</span><span class="p">,</span> <span class="s2">&quot;ps&quot;</span><span class="p">,</span> <span class="s2">&quot;pwd&quot;</span><span class="p">,</span> <span class="s2">&quot;rm&quot;</span><span class="p">,</span> <span class="s2">&quot;rmdir&quot;</span><span class="p">,</span> <span class="s2">&quot;sed&quot;</span><span class="p">,</span> <span class="s2">&quot;sh&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;sleep&quot;</span><span class="p">,</span> <span class="s2">&quot;stty&quot;</span><span class="p">,</span> <span class="s2">&quot;su&quot;</span><span class="p">,</span> <span class="s2">&quot;sync&quot;</span><span class="p">,</span> <span class="s2">&quot;tar&quot;</span><span class="p">,</span> <span class="s2">&quot;touch&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;umount&quot;</span><span class="p">,</span> <span class="s2">&quot;uname&quot;</span><span class="p">,</span> <span class="s2">&quot;usleep&quot;</span><span class="p">,</span> <span class="s2">&quot;vi&quot;</span><span class="p">,</span> <span class="s2">&quot;zcat&quot;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">symlink_list</span><span class="p">:</span>
+            <span class="n">set_description</span><span class="p">(</span><span class="n">file_is_symlink</span><span class="p">,</span> <span class="s2">&quot;file_is_symlink&quot;</span><span class="p">,</span> <span class="s2">&quot;/bin/{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
+            <span class="k">yield</span> <span class="n">file_is_symlink</span><span class="p">,</span> <span class="s2">&quot;/bin/{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">file_is_symlink</span><span class="p">(</span><span class="n">linkname</span><span class="p">,</span> <span class="n">linkdst</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns True if @linkname is a symbolic link and if it points</span>
+<span class="sd">    to the @linkdst</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># assert it with the sdk builtin method</span>
+    <span class="n">assert_true</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">linkname</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">linkdst</span><span class="p">:</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="n">linkname</span><span class="p">),</span> <span class="n">linkdst</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">mtee.tools.nose_parametrize</span> <span class="kn">import</span> <span class="n">nose_parametrize</span><span class="p">,</span> <span class="n">PrettyPrintParameterized</span>
+
+<span class="c1"># Will generate two calls:</span>
+<span class="c1"># test_my_test_case(1, 2)</span>
+<span class="c1"># print message: test_my_test_case(1, 2) ... ok</span>
+<span class="c1"># test_my_test_case(3, 4)</span>
+<span class="c1"># print message: test_my_test_case(3, 4) ... ok</span>
+<span class="nd">@nose_parametrize</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">test_my_test_case</span><span class="p">(</span><span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">TestWithPrettyTestNamePrint</span><span class="p">(</span><span class="n">PrettyPrintParameterized</span><span class="p">):</span>
+
+    <span class="c1"># Will generate two calls:</span>
+    <span class="c1"># test_my_test_case(1, 2)</span>
+    <span class="c1"># print message: TestWithPrettyTestNamePrint.test_my_test_case_in_class(self, 1, 2) ... ok</span>
+    <span class="c1"># test_my_test_case(3, 4)</span>
+    <span class="c1"># print message: TestWithPrettyTestNamePrint.test_my_test_case_in_class(self, 3, 4) ... ok</span>
+    <span class="nd">@nose_parametrize</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">test_my_test_case_in_class</span><span class="p">(</span><span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="xtee-based-tests-that-need-test-data-on-the-device">
+<h3>xTEE based tests that need test data on the device<a class="headerlink" href="#xtee-based-tests-that-need-test-data-on-the-device" title="Permalink to this headline">¶</a></h3>
+<p>If the tests need additional test data on the device, it needs to be
+supplied with the test scripts. Test data should be packaged in a sub
+folder relative to the test script and use the supplied
+<code class="docutils literal"><span class="pre">target.upload()</span></code> method to upload it to the device under test in a
+setup fixture. Of course the test script should take care that the data
+is deleted again in the teardown fixture.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="kn">from</span> <span class="nn">mtee.testing.tools</span> <span class="kn">import</span> <span class="n">assert_process_returncode</span><span class="p">,</span> <span class="n">run_command</span><span class="p">,</span> <span class="n">metadata</span>
+
+
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="s2">&quot;BAT&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TestsSdkDummyProject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="n">sdk_destination</span> <span class="o">=</span> <span class="s2">&quot;/dummy_project&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">setupAll</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="c1"># DUMMY_PROJECT_001 Copy dummy project into the sysroot</span>
+        <span class="n">src_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">)),</span> <span class="s2">&quot;test_data&quot;</span><span class="p">,</span> <span class="s2">&quot;dummy_project&quot;</span><span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="n">src_dir</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">sdk_destination</span><span class="p">,</span> <span class="n">symlinks</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">teardownAll</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">sdk_destination</span><span class="p">):</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">sdk_destination</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_dummy_project_002_compile_hello_world</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># DUMMY_PROJECT_002 Compile a Hello World application</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">run_command</span><span class="p">([</span><span class="s2">&quot;/dummy_project/run_test_make.sh&quot;</span><span class="p">])</span>
+        <span class="n">assert_process_returncode</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="s2">&quot;Building dummy project using make failed&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="extraction-of-files-after-test-execution">
+<h3>Extraction of files after test execution<a class="headerlink" href="#extraction-of-files-after-test-execution" title="Permalink to this headline">¶</a></h3>
+<p>It is possible to extract files from the target/SDK for later analysis. Extraction is
+possible on test and context level. Contexts are standard nose contexts: modules,
+classes and generator functions/methods.</p>
+<ul>
+<li><dl class="first docutils">
+<dt><strong>Test level extraction</strong></dt>
+<dd><p class="first last">Use the <code class="docutils literal"><span class="pre">&#64;target_extract(&quot;file1&quot;,</span> <span class="pre">&quot;file2&quot;)</span></code> or <code class="docutils literal"><span class="pre">&#64;sdk_extract(&quot;file1&quot;,</span> <span class="pre">&quot;file2&quot;)</span></code> decorator
+for test functions and methods</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>Context level extraction</strong></dt>
+<dd><p class="first last">Set the variable/member <code class="docutils literal"><span class="pre">__target_extract__</span></code> or <code class="docutils literal"><span class="pre">__sdk_extract__</span></code> to a list of
+files you want to extract for modules and classes.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>Extraction for test generators</strong></dt>
+<dd><p class="first last">Functions and methods which generate tests are considered contexts in Nose. However, the extraction
+syntax is the same as if they were tests. Extraction happens only once, after all generated
+tests are executed.
+Use the <code class="docutils literal"><span class="pre">&#64;target_extract(&quot;file1&quot;,</span> <span class="pre">&quot;file2&quot;)</span></code>  or <code class="docutils literal"><span class="pre">&#64;sdk_extract(&quot;file1&quot;,</span> <span class="pre">&quot;file2&quot;)</span></code> decorator.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>Extraction for generated (yielded) tests</strong></dt>
+<dd><p class="first last">To extract files for tests generated (yielded) by test generators use
+the <code class="docutils literal"><span class="pre">&#64;target_extract(&quot;file1&quot;,</span> <span class="pre">&quot;file2&quot;)</span></code> or <code class="docutils literal"><span class="pre">&#64;sdk_extract(&quot;file1&quot;,</span> <span class="pre">&quot;file2&quot;)</span></code>
+decorator. The files will be extracted in each iteration.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">References:</th><td class="field-body"><p class="first"><span class="xref std std-ref">&#64;sdk_extract()</span></p>
+<p><span class="xref std std-ref">&#64;target_extract()</span></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Examples:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="integration-tests-created-with-google-test">
+<h3>Integration tests created with Google Test<a class="headerlink" href="#integration-tests-created-with-google-test" title="Permalink to this headline">¶</a></h3>
+<p>Tests based on Google Test usually have one or more binaries that need
+to be executed on target and possibly some test data needed for target execution.</p>
+<p>These can either be packaged and deployed as described in the <a class="reference internal" href="#google-test-suite-conventions">Google Test suite
+conventions</a> or can be customized as described here using a small Python
+script to support the execution of these tests in the CI system.</p>
+<div class="section" id="workflow-for-system-tests">
+<h4>Workflow for system tests<a class="headerlink" href="#workflow-for-system-tests" title="Permalink to this headline">¶</a></h4>
+<p>Test developer develops the tests as usual using Google Test. In
+addition the developer needs to make sure that the tests are installed
+into <code class="docutils literal"><span class="pre">${SYSTEM_TESTS_TARGET_FILES_PATH}</span></code> during the installation
+procedure. This can also be handled as an additional parameter for the
+install procedure. See example below. In addition, the <a class="reference internal" href="#recipe"><span>recipe</span></a> needs to
+inherit the systemtest class to facilitate packaging the tests.</p>
+<p>After that the developer needs to create a small python script to make
+the tests visible to the CI system. A simple example can be seen below.
+This can be extended to include more setup/teardown tasks, depending on
+the tests.</p>
+<p>At the end the created test packages need to be deployed to the correct
+images. Therefore the developer needs to add the packages to:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">packagegroup-systemtests.bb</span></code> or a <code class="docutils literal"><span class="pre">.bbappend</span></code> file in the layer.</li>
+<li><code class="docutils literal"><span class="pre">packagegroup-systemtests-targetfiles.bb</span></code> or a <code class="docutils literal"><span class="pre">.bbappend</span></code> file
+in the layer.</li>
+</ul>
+</div>
+<div class="section" id="python-script-for-system-tests">
+<h4>Python script for system tests<a class="headerlink" href="#python-script-for-system-tests" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">assert_true</span><span class="p">,</span> <span class="n">assert_regexp_matches</span>
+
+<span class="kn">from</span> <span class="nn">mtee.testing.support.target_share</span> <span class="kn">import</span> <span class="n">TargetShare</span>
+<span class="kn">from</span> <span class="nn">mtee.testing.tools</span> <span class="kn">import</span> <span class="n">gtests_run</span><span class="p">,</span> <span class="n">metadata</span>
+
+<span class="n">target</span> <span class="o">=</span> <span class="n">TargetShare</span><span class="p">()</span><span class="o">.</span><span class="n">target</span>
+
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="s2">&quot;BAT&quot;</span><span class="p">,</span> <span class="n">teststage</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">,</span> <span class="s2">&quot;integration&quot;</span><span class="p">])</span>
+<span class="k">class</span> <span class="nc">TestGoogleTests</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">setup_class</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="c1"># Prepare test environment. Install needed packages.</span>
+        <span class="c1"># Make sure the package was properly installed before starting any</span>
+        <span class="c1"># further tests</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">deploy_dir</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">targetfiles_path</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span>
+        <span class="n">assert_true</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">deploy_dir</span><span class="p">),</span>
+                    <span class="s2">&quot;Package directory </span><span class="si">%s</span><span class="s2"> not found&quot;</span> <span class="o">%</span> <span class="n">cls</span><span class="o">.</span><span class="n">deploy_dir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_component_googletests</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">integration_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deploy_dir</span><span class="p">,</span> <span class="s2">&quot;integration&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">test_file</span> <span class="ow">in</span> <span class="n">target</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">integration_path</span><span class="p">):</span>
+            <span class="n">test_binary</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">integration_path</span><span class="p">,</span> <span class="n">test_file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">target</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">test_binary</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">test_case</span> <span class="ow">in</span> <span class="n">gtests_run</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">test_binary</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">test_case</span>
+
+    <span class="k">def</span> <span class="nf">test_uname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">execute_command</span><span class="p">(</span><span class="s1">&#39;uname -a&#39;</span><span class="p">)</span>
+        <span class="n">assert_process_returncode</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="s2">&quot;Executing &#39;uname -a&#39; failed&quot;</span><span class="p">)</span>
+        <span class="n">assert_regexp_matches</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s2">&quot;^Linux.*&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The local execution of new test cases will fail in <code class="docutils literal"><span class="pre">target.targetfiles_path</span></code>
+as long as the test is not installed through a test package. In order to
+execute the test <code class="docutils literal"><span class="pre">cls.deploy_dir</span></code> has to be patched to point to the hard
+coded path where the necessary files (test binaries) are located (e.g.
+<code class="docutils literal"><span class="pre">/usr/lib/mypackage/tests</span></code>).</p>
+</div>
+</div>
+<div class="section" id="recipe-additions-for-system-tests">
+<span id="recipe"></span><h4>Recipe additions for system tests<a class="headerlink" href="#recipe-additions-for-system-tests" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>...
+# add systemtest to the inherits
+inherit systemtest
+
+# make sure that the system test binaries are installed to the correct folder:
+EXTRA_OECMAKE += &quot;\
+                  -DINSTALL_TESTS=${SYSTEM_TESTS_TARGET_FILES_PATH} \
+                 &quot;
+
+# install the python test script and replace package names and deploy dir.
+do_install_systemtests() {
+    install -m 0644 &quot;${WORKDIR}/target_ramses_tests.py&quot; &quot;${D}${SYSTEM_TESTS_PATH}&quot;
+}
+</pre></div>
+</div>
+</div>
+<div class="section" id="python-script-for-sdk-tests">
+<h4>Python script for sdk tests<a class="headerlink" href="#python-script-for-sdk-tests" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">assert_true</span>
+
+<span class="kn">from</span> <span class="nn">mtee.testing.tools</span> <span class="kn">import</span> <span class="n">gtests_run</span><span class="p">,</span> <span class="n">metadata</span>
+
+
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="s2">&quot;BAT&quot;</span><span class="p">,</span> <span class="n">teststage</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">,</span> <span class="s2">&quot;integration&quot;</span><span class="p">])</span>
+<span class="k">class</span> <span class="nc">TestGoogleTests</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">deploy_dir</span> <span class="o">=</span> <span class="s2">&quot;&lt;path to Google Test binaries&gt;&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">setup_class</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="c1"># Prepare test environment. Install needed packages.</span>
+        <span class="c1"># Make sure the package was properly installed before starting any</span>
+        <span class="c1"># further tests</span>
+        <span class="n">assert_true</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">deploy_dir</span><span class="p">),</span>
+                    <span class="s2">&quot;Package directory </span><span class="si">%s</span><span class="s2"> not found&quot;</span> <span class="o">%</span> <span class="n">cls</span><span class="o">.</span><span class="n">deploy_dir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_component_googletests</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">integration_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deploy_dir</span><span class="p">,</span> <span class="s2">&quot;integration&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">test_file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">integration_path</span><span class="p">):</span>
+            <span class="n">test_binary</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">integration_path</span><span class="p">,</span> <span class="n">test_file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">test_binary</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">test_case</span> <span class="ow">in</span> <span class="n">gtests_run</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">test_binary</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">test_case</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="test-environment">
+<h2>Test environment<a class="headerlink" href="#test-environment" title="Permalink to this headline">¶</a></h2>
+<p>Framework allows marking tests for execution only if environment
+prerequisites are met. For example target is hardware, or supports CAN,
+etc. On setup/teardown methods within classes, e.g. setup_class(cls) there is an
+additional decorator required to skip execution.</p>
+<div class="section" id="supported">
+<h3>Supported<a class="headerlink" href="#supported" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>&quot;target&quot;:
+    &quot;hardware&quot;
+    &quot;simulator&quot;
+&quot;target_type&quot;:
+    &quot;xpad-qemu&quot;,
+    &quot;xpad-hpad&quot;
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-usage">
+<h3>Example usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">mtee.testing.test_environment</span> <span class="kn">import</span> <span class="n">require_environment</span><span class="p">,</span> <span class="n">require_environment_setup</span>
+<span class="kn">from</span> <span class="nn">mtee.testing.test_environment</span> <span class="kn">import</span> <span class="n">TEST_ENVIRONMENT</span> <span class="k">as</span> <span class="n">te</span>
+
+<span class="n">target</span> <span class="o">=</span> <span class="n">TargetShare</span><span class="p">()</span><span class="o">.</span><span class="n">target</span>
+
+<span class="nd">@require_environment</span><span class="p">(</span><span class="n">te</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">hardware</span><span class="p">)</span>
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="s2">&quot;BAT&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_valid_for_hardware_targets</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="nd">@require_environment</span><span class="p">(</span><span class="n">te</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">simulator</span><span class="p">)</span>
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="s2">&quot;BAT&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_valid_for_simulated_targets</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="nd">@require_environment</span><span class="p">(</span><span class="n">te</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">hardware</span><span class="p">,</span> <span class="n">te</span><span class="o">.</span><span class="n">target_type</span><span class="o">.</span><span class="n">rse</span><span class="p">)</span>
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="s2">&quot;BAT&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_valid_only_for_hardware_RSE</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="nd">@require_environment</span><span class="p">(</span><span class="n">te</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">hardware</span><span class="p">,</span> <span class="n">te</span><span class="o">.</span><span class="n">target_type</span><span class="o">.</span><span class="n">hu</span><span class="p">,</span> <span class="n">te</span><span class="o">.</span><span class="n">hardware_variant</span><span class="o">.</span><span class="n">mid</span><span class="p">)</span>
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="s2">&quot;BAT&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_valid_only_for_HU_mid</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="nd">@require_environment</span><span class="p">(</span><span class="n">te</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">hardware</span><span class="p">,</span> <span class="n">te</span><span class="o">.</span><span class="n">target_type</span><span class="o">.</span><span class="n">hu</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TestsClassWithSetupMethod</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="nd">@require_environment_setup</span><span class="p">(</span><span class="n">te</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">hardware</span><span class="p">,</span> <span class="n">te</span><span class="o">.</span><span class="n">target_type</span><span class="o">.</span><span class="n">hu</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">setup_class</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="nd">@require_environment_setup</span><span class="p">(</span><span class="n">te</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">hardware</span><span class="p">,</span> <span class="n">te</span><span class="o">.</span><span class="n">target_type</span><span class="o">.</span><span class="n">hu</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">teardown_class</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">test_valid_only_for_hardware_HU</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bmw_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Guidelines for test developers</a><ul>
+<li><a class="reference internal" href="#developer-workflows">Developer workflows</a><ul>
+<li><a class="reference internal" href="#simple-shell-scripts-executed-on-target">Simple shell scripts executed on target</a><ul>
+<li><a class="reference internal" href="#test-suite-conventions">Test suite conventions</a></li>
+<li><a class="reference internal" href="#google-test-suite-conventions">Google Test suite conventions</a></li>
+<li><a class="reference internal" href="#file-locations-and-test-suite-name">File locations and test suite name</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#standard-xtee-based-tests">Standard xTEE based tests</a><ul>
+<li><a class="reference internal" href="#system-tests">System tests</a></li>
+<li><a class="reference internal" href="#sdk-tests">SDK tests</a></li>
+<li><a class="reference internal" href="#advanced-test-features-generators-generator-decorator">Advanced test features (generators, generator decorator)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#xtee-based-tests-that-need-test-data-on-the-device">xTEE based tests that need test data on the device</a></li>
+<li><a class="reference internal" href="#extraction-of-files-after-test-execution">Extraction of files after test execution</a></li>
+<li><a class="reference internal" href="#integration-tests-created-with-google-test">Integration tests created with Google Test</a><ul>
+<li><a class="reference internal" href="#workflow-for-system-tests">Workflow for system tests</a></li>
+<li><a class="reference internal" href="#python-script-for-system-tests">Python script for system tests</a></li>
+<li><a class="reference internal" href="#recipe-additions-for-system-tests">Recipe additions for system tests</a></li>
+<li><a class="reference internal" href="#python-script-for-sdk-tests">Python script for sdk tests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#test-environment">Test environment</a><ul>
+<li><a class="reference internal" href="#supported">Supported</a></li>
+<li><a class="reference internal" href="#example-usage">Example usage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/test_case_creation.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Patricia Javierre.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/test_case_creation.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Test documentation and reporting &mdash; xtee_documentation 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="xtee_documentation 1.0 documentation" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="test-documentation-and-reporting">
+<h1>Test documentation and reporting<a class="headerlink" href="#test-documentation-and-reporting" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="metadata-for-tests">
+<h2>Metadata for tests<a class="headerlink" href="#metadata-for-tests" title="Permalink to this headline">¶</a></h2>
+<p>As defined in <span class="xref std std-ref">attributes_best_practices</span> tests can have different attributes. This adds metadata to
+the test cases. Depending on the type of test it might be mandatory to define some of these metadata items.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># Copyright (C) 2015. BMW Car IT GmbH. All rights reserved.</span>
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">assert_regexp_matches</span>
+
+<span class="kn">from</span> <span class="nn">mtee.testing.support.target_share</span> <span class="kn">import</span> <span class="n">TargetShare</span>
+<span class="kn">from</span> <span class="nn">mtee.testing.tools</span> <span class="kn">import</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">target_extract</span><span class="p">,</span> <span class="n">assert_process_returncode</span>
+
+<span class="c1"># test needs a target for execution</span>
+<span class="n">target</span> <span class="o">=</span> <span class="n">TargetShare</span><span class="p">()</span><span class="o">.</span><span class="n">target</span>
+
+
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;BAT&quot;</span><span class="p">,</span> <span class="s2">&quot;domain&quot;</span><span class="p">,</span> <span class="p">],</span>
+          <span class="n">component</span><span class="o">=</span><span class="s2">&quot;dummy&quot;</span><span class="p">,</span>
+          <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;SWINT&quot;</span><span class="p">,</span>
+          <span class="n">teststage</span><span class="o">=</span><span class="s2">&quot;integration&quot;</span><span class="p">,</span>
+          <span class="n">testlevel</span><span class="o">=</span><span class="s2">&quot;ENG_07&quot;</span><span class="p">,</span>
+          <span class="n">test_case_id</span><span class="o">=</span><span class="s2">&quot;some id&quot;</span><span class="p">,</span>
+          <span class="n">testtype</span><span class="o">=</span><span class="s2">&quot;functional&quot;</span><span class="p">,</span>
+          <span class="n">dependencies</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;MGU&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;ALM&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ALMID1&quot;</span><span class="p">,</span> <span class="s2">&quot;ALMID2&quot;</span><span class="p">,</span> <span class="p">],</span>
+                                <span class="s2">&quot;ELVIS&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ELVISID1&quot;</span><span class="p">,</span> <span class="s2">&quot;ELVISID2&quot;</span><span class="p">,</span> <span class="s2">&quot;ELVISID3&quot;</span><span class="p">,</span> <span class="p">],</span>
+                                <span class="s2">&quot;JIRA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;JIRAID1&quot;</span><span class="p">,</span> <span class="s2">&quot;JIRAID2&quot;</span><span class="p">,</span> <span class="p">],</span> <span class="p">},</span>
+                        <span class="p">},</span>
+          <span class="n">traceability</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;MGU&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;HLF&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;HLF1&quot;</span><span class="p">,</span> <span class="s2">&quot;HLF2&quot;</span><span class="p">,</span> <span class="p">],</span>
+                                <span class="s2">&quot;DOORS&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;requirement 1&quot;</span><span class="p">,</span> <span class="s2">&quot;requirement 2&quot;</span><span class="p">,</span> <span class="p">],</span>
+                                <span class="s2">&quot;JIRA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;JIRA1&quot;</span><span class="p">,</span> <span class="s2">&quot;JIRA2&quot;</span><span class="p">,</span> <span class="p">],</span>
+                                <span class="s2">&quot;ELVIS&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ELVIS&quot;</span><span class="p">,</span> <span class="p">],</span>
+                                <span class="s2">&quot;EA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;EA-ID&quot;</span><span class="p">,</span> <span class="p">],</span>
+                                <span class="p">},</span>
+                        <span class="s2">&quot;RSE&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;ELVIS&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ELVIS&quot;</span><span class="p">,</span> <span class="p">],</span>
+                                <span class="s2">&quot;JIRA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;BHU-123&quot;</span><span class="p">,</span> <span class="p">],</span>
+                                <span class="s2">&quot;EA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;EA-ID&quot;</span><span class="p">,</span> <span class="p">],</span> <span class="p">},</span>
+                        <span class="p">},</span>
+          <span class="n">test_description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;This test class verifies:</span>
+<span class="s2">                              - nothing</span>
+<span class="s2">                              - more nothing&quot;&quot;&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TestTargetSystem</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_example</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@metadata</span><span class="p">(</span><span class="n">test_description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;This test case verifies:</span>
+<span class="s2">                                  - some more nothing</span>
+<span class="s2">                                  - even more nothing&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test_other_example</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="metadata-for-google-tests-scripts">
+<h2>Metadata for Google Tests scripts<a class="headerlink" href="#metadata-for-google-tests-scripts" title="Permalink to this headline">¶</a></h2>
+<p>When using <code class="docutils literal"><span class="pre">mtee.testing.tools.gtests_run</span></code>, metadata can be added to Google Test scripts by using the <code class="docutils literal"><span class="pre">RecordProperty</span></code> option:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;key&quot;</span><span class="p">,</span> <span class="s">&quot;property&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>To be recognized as metadata entry, the <code class="docutils literal"><span class="pre">key</span></code> has to start with <code class="docutils literal"><span class="pre">metadata.</span></code> followed by the metadata
+tag. If a <code class="docutils literal"><span class="pre">key</span></code> has more than one <code class="docutils literal"><span class="pre">value</span></code> the values have to be given as comma separated list, e.g.
+<code class="docutils literal"><span class="pre">RecordProperty(&quot;metadata.key&quot;,</span> <span class="pre">&quot;Prop1,</span> <span class="pre">Prop2,</span> <span class="pre">Prop3&quot;);</span></code>. Nested metadata is defined by a dot joined
+string as <code class="docutils literal"><span class="pre">key</span></code>, e.g. <code class="docutils literal"><span class="pre">RecordProperty(&quot;metadata.sub1.sub2.key&quot;,</span> <span class="pre">&quot;Prop&quot;);</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">TEST</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">Negative</span><span class="p">){</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.testsuite&quot;</span><span class="p">,</span> <span class="s">&quot;BAT, domain&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.component&quot;</span><span class="p">,</span> <span class="s">&quot;dummy&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.domain&quot;</span><span class="p">,</span> <span class="s">&quot;SWINT&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.teststage, &quot;</span><span class="n">integration</span><span class="s">&quot;);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.testlevel&quot;</span><span class="p">,</span> <span class="s">&quot;ENG_07&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.test_case_id&quot;</span><span class="p">,</span> <span class="s">&quot;some id&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.testtype&quot;</span><span class="p">,</span> <span class="s">&quot;functional&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.dependencies.MGU.ALM&quot;</span><span class="p">,</span> <span class="s">&quot;ALMID1, ALMID2&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.dependencies.MGU.ELVIS&quot;</span><span class="p">,</span> <span class="s">&quot;ELVISID1, ELVISID2, ELVISID3&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.dependencies.MGU.JIRA&quot;</span><span class="p">,</span> <span class="s">&quot;JIRAID1, JIRAID2&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.traceability.MGU.HLF&quot;</span><span class="p">,</span> <span class="s">&quot;HLF1, HLF2&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.traceability.MGU.DOORS&quot;</span><span class="p">,</span> <span class="s">&quot;requirement1, requirement2&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.traceability.MGU.JIRA&quot;</span><span class="p">,</span> <span class="s">&quot;JIRA1, JIRA2&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.traceability.MGU.ELVIS&quot;</span><span class="p">,</span> <span class="s">&quot;ELVIS&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.traceability.MGU.EA&quot;</span><span class="p">,</span> <span class="s">&quot;EA-ID&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.traceability.RSE.ELVIS&quot;</span><span class="p">,</span> <span class="s">&quot;ELVIS&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.traceability.RSE.JIRA&quot;</span><span class="p">,</span> <span class="s">&quot;BHU-123&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.traceability.RSE.EA&quot;</span><span class="p">,</span> <span class="s">&quot;EA-ID&quot;</span><span class="p">);</span>
+    <span class="n">RecordProperty</span><span class="p">(</span><span class="s">&quot;metadata.test_description&quot;</span><span class="p">,</span> <span class="s">&quot;his test class verifies:</span><span class="se">\n</span><span class="s">&quot;</span>
+                                                <span class="s">&quot; - nothing</span><span class="se">\n</span><span class="s">&quot;</span>
+                                                <span class="s">&quot; - more nothing</span><span class="se">\n</span><span class="s">&quot;</span>
+    <span class="n">EXPECT_EQ</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">theta</span><span class="p">(</span><span class="o">-</span><span class="mi">33</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="test-documentation-in-reports">
+<h2>Test documentation in reports<a class="headerlink" href="#test-documentation-in-reports" title="Permalink to this headline">¶</a></h2>
+<p>Test reports created from xTEE test runs will have the metadata in the reports.</p>
+</div>
+<div class="section" id="best-practices-for-other-attributes-to-be-used-with-tests">
+<h2>Best practices for other attributes to be used with tests<a class="headerlink" href="#best-practices-for-other-attributes-to-be-used-with-tests" title="Permalink to this headline">¶</a></h2>
+<p>Test cases can have many different attributes. These can be used to define filters that will only execute
+matching test cases. Some best practices on attribute usage are given here.</p>
+<ul>
+<li><dl class="first docutils">
+<dt>Component</dt>
+<dd><p class="first last">Attribute <code class="docutils literal"><span class="pre">component</span></code> should be set to the component tested by the test case. For multiple components
+a list can be used (<code class="docutils literal"><span class="pre">component=[&quot;component1&quot;,</span> <span class="pre">&quot;component2&quot;]</span></code>). Component should be equal to the name
+of the package that provides the component (<code class="docutils literal"><span class="pre">${BPN}</span></code> in BitBake, contact the responsible Domain Integrator
+if unsure).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Domain</dt>
+<dd><p class="first last">Attribute should contain the domain the component under tests belongs to. E.g. <code class="docutils literal"><span class="pre">domain=&quot;SWINT&quot;</span></code>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Duration</dt>
+<dd><p class="first last">Attribute <code class="docutils literal"><span class="pre">duration</span></code> could be used to label tests that take long, or mark the short ones.
+E.g. <code class="docutils literal"><span class="pre">duration=&quot;long&quot;</span></code> or <code class="docutils literal"><span class="pre">duration=&quot;short&quot;</span></code>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Priority</dt>
+<dd><p class="first last">Specify a numeric priority level for the test case. E.g. <code class="docutils literal"><span class="pre">priority=0</span></code> for the highest priority. Test
+cases with lower priorities get higher numbers.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Test stage</dt>
+<dd><p class="first">Attribute <code class="docutils literal"><span class="pre">teststage</span></code> should be used to define the test stage. Possible values:</p>
+<ul class="last simple">
+<li><code class="docutils literal"><span class="pre">teststage=&quot;module&quot;</span></code></li>
+<li><code class="docutils literal"><span class="pre">teststage=&quot;integration&quot;</span></code></li>
+<li><code class="docutils literal"><span class="pre">teststage=&quot;system&quot;</span></code></li>
+<li><code class="docutils literal"><span class="pre">teststage=&quot;regression&quot;</span></code></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Test level</dt>
+<dd><p class="first">Attribute <code class="docutils literal"><span class="pre">testlevel</span></code> should be used to define the test level based on the definition in
+automotive SPICE. Possible values:</p>
+<ul class="last simple">
+<li><code class="docutils literal"><span class="pre">testlevel=&quot;ENG_07&quot;</span></code></li>
+<li><code class="docutils literal"><span class="pre">testlevel=&quot;ENG_08&quot;</span></code></li>
+<li><code class="docutils literal"><span class="pre">testlevel=&quot;ENG_09&quot;</span></code></li>
+<li><code class="docutils literal"><span class="pre">testlevel=&quot;ENG_10&quot;</span></code></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Test suite</dt>
+<dd><p class="first last">Attribute <code class="docutils literal"><span class="pre">testsuite</span></code> can also be used with values other than <code class="docutils literal"><span class="pre">BAT</span></code> or <code class="docutils literal"><span class="pre">domain</span></code>.
+E.g. a tester could define a <code class="docutils literal"><span class="pre">stress</span></code> test suite.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Test type</dt>
+<dd><p class="first">Attribute <code class="docutils literal"><span class="pre">testtype</span></code> is used to define the type of test. Possible values:</p>
+<ul class="last simple">
+<li><code class="docutils literal"><span class="pre">testype=&quot;functional&quot;</span></code></li>
+<li><code class="docutils literal"><span class="pre">testype=&quot;performance&quot;</span></code></li>
+<li><code class="docutils literal"><span class="pre">testype=&quot;stress&quot;</span></code></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;BAT&quot;</span><span class="p">,</span> <span class="s2">&quot;domain&quot;</span><span class="p">,</span> <span class="p">],</span>
+          <span class="n">component</span><span class="o">=</span><span class="s2">&quot;common-api-c++-dbus&quot;</span><span class="p">,</span>
+          <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;SYSINFRA&quot;</span><span class="p">,</span>
+          <span class="n">duration</span><span class="o">=</span><span class="s2">&quot;short&quot;</span><span class="p">,</span>
+          <span class="n">priority</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+          <span class="n">teststage</span><span class="o">=</span><span class="s2">&quot;integration&quot;</span><span class="p">,</span>
+          <span class="n">testlevel</span><span class="o">=</span><span class="s2">&quot;ENG_07&quot;</span><span class="p">,</span>
+          <span class="n">test_description</span><span class="o">=</span><span class="s2">&quot;This is the integration test for CommonAPI-DBus bindings&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_integ_capi_dbus</span><span class="p">():</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="test-results-reporting">
+<h2>Test results reporting<a class="headerlink" href="#test-results-reporting" title="Permalink to this headline">¶</a></h2>
+<p>The option &#8211;result-dir allows to define the folder we we want the test results to be saved. Here we will see:</p>
+<ul>
+<li><p class="first">The output log of qemu in case of test run against the virtualized device.</p>
+</li>
+<li><p class="first">Report of test execution in xml format.</p>
+</li>
+<li><p class="first">Report of execution in html format. This can be opened in the browser, to have a more understandable report.</p>
+<img alt="_images/html_results1.png" src="_images/html_results1.png" />
+<img alt="_images/html_results2.png" src="_images/html_results2.png" />
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bmw_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Test documentation and reporting</a><ul>
+<li><a class="reference internal" href="#metadata-for-tests">Metadata for tests</a></li>
+<li><a class="reference internal" href="#metadata-for-google-tests-scripts">Metadata for Google Tests scripts</a></li>
+<li><a class="reference internal" href="#test-documentation-in-reports">Test documentation in reports</a></li>
+<li><a class="reference internal" href="#best-practices-for-other-attributes-to-be-used-with-tests">Best practices for other attributes to be used with tests</a></li>
+<li><a class="reference internal" href="#test-results-reporting">Test results reporting</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/test_documentation_and_reporting.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Patricia Javierre.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/test_documentation_and_reporting.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

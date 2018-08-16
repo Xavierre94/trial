@@ -1,0 +1,278 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Test suites and test management for xPAD CI test executions &mdash; xtee_documentation 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="xtee_documentation 1.0 documentation" href="index.html" />
+    <link rel="prev" title="xPAD Test Execution Environment (MTEE)" href="general_usage.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="test-suites-and-test-management-for-xpad-ci-test-executions">
+<h1>Test suites and test management for xPAD CI test executions<a class="headerlink" href="#test-suites-and-test-management-for-xpad-ci-test-executions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="test-management">
+<h2>Test management<a class="headerlink" href="#test-management" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="basics">
+<h3>Basics<a class="headerlink" href="#basics" title="Permalink to this headline">¶</a></h3>
+<p>Test management for xPAD is done in two levels.</p>
+<ul>
+<li><dl class="first docutils">
+<dt><strong>on test script/test package level</strong>:</dt>
+<dd><p class="first last">single test script or folders of test scripts can be added to a test suite or excluded from a test suite.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>on test case level inside the test scripts</strong>:</dt>
+<dd><p class="first last">inside a test script individual test cases or groups of test cases can be labeled for different
+test suites with attributes. If no attributes are added to a test case it does not belong to any
+test suite. For test management different combinations of attributes can be selected into a
+test suite or excluded from a test suite.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"><p class="first">Test suite <code class="docutils literal"><span class="pre">BAT</span></code></p>
+<ul class="last simple">
+<li>All test cases that should be included need to have the attribute BAT added by the developers.</li>
+<li>All the test scripts that contain test cases included in the BAT suite need to be included in the
+test suite definition file for BAT (BAT-systemtests)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="test-suite-definition">
+<h3>Test suite definition<a class="headerlink" href="#test-suite-definition" title="Permalink to this headline">¶</a></h3>
+<p>Each test suite is defined in a set of files. Currently the test runner expects the test suite definition in
+a folder <code class="docutils literal"><span class="pre">test-suites</span></code> next to the test images.</p>
+<ul>
+<li><dl class="first docutils">
+<dt>test suite filter definition file</dt>
+<dd><p class="first last">This file contains the filter definition for the attributes.
+Filename: <code class="docutils literal"><span class="pre">&lt;test_suite_name&gt;</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>test suite test script/package file</dt>
+<dd><p class="first last">Filename: <code class="docutils literal"><span class="pre">&lt;test_suite_name&gt;-&lt;sdktests|systemtests&gt;</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>one or more test suite target specific test script/package files</dt>
+<dd><p class="first last">Filename: <code class="docutils literal"><span class="pre">&lt;test_suite_name&gt;-&lt;sdktests|systemtests&gt;-&lt;targetid&gt;</span></code></p>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="section" id="test-suite-filter-definition-file">
+<h4>Test suite filter definition file<a class="headerlink" href="#test-suite-filter-definition-file" title="Permalink to this headline">¶</a></h4>
+<p>This file defines the attribute filter to be used for the test suite. It contains the attribute filter
+arguments as required by the Attrib plugin for python-nose. See the
+<a class="reference external" href="http://nose.readthedocs.org/en/latest/plugins/attrib.html">documentation of the nose plugin</a>.</p>
+<p>Example</p>
+<div class="highlight-bash"><div class="highlight"><pre>-a <span class="nv">testsuite</span><span class="o">=</span>BAT -a BAT
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-bash"><div class="highlight"><pre>-a <span class="s1">&#39;!duration=longterm&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="test-suite-test-script-package-file">
+<h4>Test suite test script/package file<a class="headerlink" href="#test-suite-test-script-package-file" title="Permalink to this headline">¶</a></h4>
+<p>Contains all the test scripts/packages included in the test suite, one script/package per line.</p>
+</div>
+<div class="section" id="test-suite-target-specific-test-script-package-file">
+<h4>Test suite target specific test script/package file<a class="headerlink" href="#test-suite-target-specific-test-script-package-file" title="Permalink to this headline">¶</a></h4>
+<p>Contains test scripts valid for a specific build target only. E.g. scripts that exist only for HW targets as
+they are provided in layers that are not included when building the other targets.</p>
+</div>
+</div>
+<div class="section" id="adding-test-cases-to-test-suites">
+<h3>Adding test cases to test suites<a class="headerlink" href="#adding-test-cases-to-test-suites" title="Permalink to this headline">¶</a></h3>
+<p>When adding test cases to a test suite you need to add the correct attribute to it, so it can be picked up
+by the filter. This is done by using the <code class="docutils literal"><span class="pre">&#64;metadata</span></code> decorator, which will also put the metadata into the
+test report.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">mtee.testing.tools</span> <span class="kn">import</span> <span class="n">metadata</span>
+
+<span class="nd">@metadata</span><span class="p">(</span><span class="n">testsuite</span><span class="o">=</span><span class="s2">&quot;BAT&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">test_example</span><span class="p">():</span>
+</pre></div>
+</div>
+<p>If the test case/class should be assigned to more than one test suite you need to use a list. E.g.:
+<code class="docutils literal"><span class="pre">&#64;metadata(testsuite=[&quot;BAT&quot;,</span> <span class="pre">&quot;domain&quot;])</span></code>. Other attributes that can be used are specified here:
+<span class="xref std std-ref">attributes_best_practices</span></p>
+</div>
+</div>
+<div class="section" id="test-suites">
+<h2>Test suites<a class="headerlink" href="#test-suites" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="test-suites-used-in-ci">
+<h3>Test suites used in CI<a class="headerlink" href="#test-suites-used-in-ci" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</div>
+</div>
+<div class="section" id="how-to-use-python-modules-with-external-tests">
+<h2>How to use Python modules with external tests<a class="headerlink" href="#how-to-use-python-modules-with-external-tests" title="Permalink to this headline">¶</a></h2>
+<p>The directory given as the <em>&#8211;test-dir</em> option will be added to the
+PYTHONPATH so that the tests can import modules living in this directory. In
+the example below the test can make use of the Python package <code class="docutils literal"><span class="pre">my_module</span></code>.</p>
+<div class="highlight-python"><div class="highlight"><pre>|-- my_custom_folder
+    |__ test_package_a
+        |__ sdktests
+        |   |__ example_a_sdk_test.py
+        |   |__ [...]
+        |__ systemtest
+            |__ example_a_target_test.py
+            |__ [...]
+    |__ test_package_b
+        |__ systemtest
+            |__ example_b_target_test.py
+            |__ [...]
+    |__ my_module
+        |__ __init__.py
+        |__ foobar.py
+        |__ sub_module
+            |__ __init__.py
+            |__ example.py
+            |__ [...]
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Please note that this is only recommended and possible to be used in case
+it&#8217;s not planned to include the tests in the SDK. This mechanism can not
+be used for BAT tests since those need to be installed in the SDK.
+Please contact us in case there is a need for such functionality for
+BAT tests.</p>
+</div>
+</div>
+<div class="section" id="glossary">
+<h2>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><strong>test script</strong></dt>
+<dd>one single python script file ending on _tests.py and containing one or more test cases/classes/methods</dd>
+<dt><strong>test package</strong></dt>
+<dd>a folder containing one or more test scripts</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bmw_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Test suites and test management for xPAD CI test executions</a><ul>
+<li><a class="reference internal" href="#test-management">Test management</a><ul>
+<li><a class="reference internal" href="#basics">Basics</a></li>
+<li><a class="reference internal" href="#test-suite-definition">Test suite definition</a><ul>
+<li><a class="reference internal" href="#test-suite-filter-definition-file">Test suite filter definition file</a></li>
+<li><a class="reference internal" href="#test-suite-test-script-package-file">Test suite test script/package file</a></li>
+<li><a class="reference internal" href="#test-suite-target-specific-test-script-package-file">Test suite target specific test script/package file</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#adding-test-cases-to-test-suites">Adding test cases to test suites</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#test-suites">Test suites</a><ul>
+<li><a class="reference internal" href="#test-suites-used-in-ci">Test suites used in CI</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#how-to-use-python-modules-with-external-tests">How to use Python modules with external tests</a></li>
+<li><a class="reference internal" href="#glossary">Glossary</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="general_usage.html" title="previous chapter">xPAD Test Execution Environment (MTEE)</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/testmanagement.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Patricia Javierre.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/testmanagement.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

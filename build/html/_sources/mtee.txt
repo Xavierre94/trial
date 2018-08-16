@@ -1,0 +1,379 @@
+#####################################
+xPAD Test Execution Environment (MTEE)
+#####################################
+
+xTEE is a python module and a collection of plugins for `python-nose`_ to
+support execution and reporting of embedded tests in a Continuous Integration
+infrastructure and locally.
+
+xTEE can be thought about as having 2 primary components - the `test runner` and
+the `Target`. In essence, xTEE provides a way to invoke the `test runner`, which
+in turn configures and executes tests on the `Target`. The test runner execution
+can be controlled with a variety of command line arguments. It can also be
+configured using configuration files/environment variables that influence the
+type of tests, the test execution environment, as well as the choice of target
+for tests execution.
+
+**************
+Types of tests
+**************
+
+There are two different types of tests that are currently supported.
+
+.. _system_tests:
+
+System tests
+============
+
+System tests test the behaviour of a component on the Target. Test
+execution is driven from a test runner which has control over the system
+under test. A library provides access to certain target functionality
+(e.g. file download / upload, tracing, command execution, …). To see more
+functions in this library, click :ref:`here <target>`.
+
+.. _sdk_tests:
+
+SDK tests
+=========
+
+SDK tests verify that a component can be used from within the SDK
+context. In case of a library, an SDK test would typically verify that
+compilation against the library is possible. If the component provides a
+code generator, the test would verify that the code generation is
+possible from the SDK.
+
+Post-tests
+==========
+
+Special tests could be run after normal test execution has finished. Typical
+example is checking for result file size. Note that the target is already
+shut down during the post-test run.
+
+**************
+Test Execution
+**************
+
+Local Test Execution
+====================
+
+.. _prerequisites:
+
+Prerequisites
+-------------
+
+Before running tests, make sure that the following archive files are available.
+
+-  *Images*
+
+   Depending on the test target, the images archive contains files for either *virtual* or
+   *hardware* target.
+
+-  *SDK* (optional, only if tests against the sdk should be run)
+
+   The *sdk* archive based on the target needs to be available.
+
+-  *IPK*
+
+   The *ipk* archive based on the target needs to be available. The tar ball has been replaced with
+   a folder containing the IPKs.
+
+.. note::
+
+   All archive files should be matching the target. All three archives, *images*, *sdk* and
+   *ipk*, are required regardless of the test type.
+
+:Example:
+
+After downloading the prerequisite files for *virtual* target the directory structure should be as listed below:
+
+::
+
+    deploy/
+    ├── images
+    |    ├── hpad-a1-64-abl (ext4 image and kernels)
+    ├── sdk (compiled sdk, only if needed)
+    └── ipk (only if needed)
+
+
+How to use xTEE
+-----------------
+
+-  *Run tests series*
+
+   .. code-block:: bash
+
+     $ docker run --rm -it --privileged \
+	     -e USER_UID=`id -u` \
+	     -e USER_GID=`id -g` \
+	     -e USER_NAME=$(USER) \
+	     -v `pwd`:/workspace \
+	     --env no_proxy=$(NO_PROXY) --env http_proxy=http://qxnumber:password@192.109.190.88:8080/ --env https_proxy=http://qxnumber:password@192.109.190.88:8080/ \
+	     --env NO_PROXY=$(NO_PROXY) --env HTTP_PROXY=http://qxnumber:password@192.109.190.88:8080/ --env HTTPS_PROXY=http://qxnumber:password@192.109.190.88:8080/ \
+	     -v /home/$(USER)/.netrc:/home/$(USER)/.netrc \
+	     -v /home/$(USER)/.ssh:/home/$(USER)/.ssh \
+	     system-test:latest /bin/bash -c \
+	     "install_test_tools.sh && mkdir -p test-results-all && system-test --test-suite all --test-dir /workspace/aas-platform-flash-systemtest/abac/systemtests/ --result-dir test-results-execution --target xpad-qemu"
+
+      The executed tests have to be inside the directory indicated in the --test-dir option and have the chain *test* in the name. Important is that the test directory has to be inside workspace.
+      Specifying all in the --test-suite option will run all test suites inside the given directory.
+
+      ..note::
+
+       proxy settings and .netrc have to be passed to the docker container in order to have internet access and be able to download needed packages.
+
+-  *Run tests against the SDK*
+
+  Specify the kind of sdk you are using with the --sdk-type option [bmw|yocto] and place the sdk in the sdk folder as explained in :ref:'setup <setup>'.
+  Using --sdk option, a custom directory can be specified for the sdk.
+
+.. code-block:: bash
+
+  $ docker run --rm -it --privileged \
+    -e USER_UID=`id -u` \
+    -e USER_GID=`id -g` \
+    -e USER_NAME=$(USER) \
+    -v `pwd`:/workspace \
+    --env no_proxy=$(NO_PROXY) --env http_proxy=http://qxnumber:password@192.109.190.88:8080/ --env https_proxy=http://qxnumber:password@192.109.190.88:8080/ \
+    --env NO_PROXY=$(NO_PROXY) --env HTTP_PROXY=http://qxnumber:password@192.109.190.88:8080/ --env HTTPS_PROXY=http://qxnumber:password@192.109.190.88:8080/ \
+    -v /home/$(USER)/.netrc:/home/$(USER)/.netrc \
+    -v /home/$(USER)/.ssh:/home/$(USER)/.ssh \
+    system-test:latest /bin/bash -c \
+    "install_test_tools.sh && mkdir -p test-results-all && system-test --test-suite all --test-dir /workspace/aas-platform-flash-systemtest/abac/systemtests/ --result-dir test-results-execution --target xpad-qemu --sdk-type bmw"
+
+.. note::
+
+   Do not rename any of the files and folders, otherwise the execution will not work.
+
+
+-  *Filter Testcases*
+
+   It is possible to filter tests by giving the *--test-packages* option.
+   The example below would run *only* test cases matching the test packages
+   filter by searching recursively for all Python test scripts
+   (following the :ref:`naming convention <convention>`) in the
+   ``/usr/share/bci-test-component/`` and ``/usr/share/core-test-suite`` directories.
+   For relative paths, the default test paths or the path specified by *--test-dir* are prepended.
+
+.. code-block:: bash
+
+    $ system-test --test-suite all --result-dir test-results-execution --target xpad-qemu --test-packages bci-test-component,/usr/share/core-test-suite
+
+The test packages (one package per line) can be listed in a file
+and the script will load it. Run ``system-test`` with
+*--test-suite* and without the *--test-packages* option, then
+the script will search for the file containing path to test packages in the
+``test-dir`` folder of the target directory.
+
+Please be careful when combining the *--test-suite* and *--test-packages*
+options. In this case the test runner tries to load the filters from the package
+files first and afterwards the test-package filters are applied. This means
+that filters given by *--test-packages* can only further restrict the already
+filtered subset of tests. Including additional tests is not possible with this
+combination.
+
+::
+
+   $ system-test --tests all --test-suite BAT
+
+The above command will look for ``/path/to/target_dir/test-suites/BAT`` file and run
+all tests matching the attribute filter from this file. In addition it will look for the files
+``/path/to/target_dir/test-suites/BAT-sdktests`` and ``/path/to/target_dir/test-suites/BAT-systemtests``.
+If the files exist, then the filters listed in them will be applied. Otherwise, no filter will be applied and
+all tests (following the :ref:`naming convention <convention>`) in ``/usr`` and
+``/opt/nativesysroot/usr`` will be executed.
+
+.. note::
+
+    Customize location of the test-suites folder with *--test-dir* option. This will also customize
+    the test-scripts location. In single execution, running of tests installed in the SDK and from
+    an external folder is not supported.
+
+- *Configure Target features for test suites*
+
+  It is possible to enable or disable the optional feature methods for a target
+  depending on the testsuite being executed via a configuration file. This file
+  should be named `<test-suite-name>-conf.json` and should be placed under the
+  test-suites directory. For example, the `BAT` testsuite feature configuration
+  file would be:
+
+::
+
+    my_test_dir
+    |__ mgu-15w35.4-3-5-vmwx86-images.tar.gz
+    |__ mgu-15w35.4-3-5-vmwx86-images
+    |   |__ scripts
+    |   |   |__ execute_tests.sh
+    |   |__ test-suites
+    │   │   |__ BAT
+    |   |   |__ BAT-conf.json
+    |   |__ versions.txt
+    |   |__ vmwx86
+    ...
+
+
+The configuration file should be a json formatted file containing the target
+type and the corresponding feature flags, as shown below
+
+::
+
+  {
+    'VMWx86Target' : {'reboot' : False},
+    'MGUHighTarget' : {'some_fancy_feature' : False},
+    ...
+  }
+
+.. note::
+
+  * The configuration here will only affect the optional feature methods (ie:
+    methods defined with the `@TargetCommon._optional_feature`_ decorator).
+  * Currently all target feature methods are *enabled* by default, so this
+    configuration is really only necessary if one wishes to disable an
+    optional feature.
+  * Disabling a feature implies that calling the feature method from within a
+    test does nothing, whereas enabling a feature implies that the method will
+    actally be invoked when called.
+
+.. important::
+
+    If multiple testsuites are specified in the test runner command line, the
+    feature configuration of only the *first* specific testsuite is applied.
+
+:Example:
+
+With the following json config:
+
+::
+
+    {
+      'VMWx86Target' : {'isfile' : True},
+      'VMWx86Target' : {'isdir' : False}
+    }
+
+In your test case:
+::
+
+    target.isfile(some_file)    # Returns True/False as expected.
+    target.isdir(some_path)     # Does nothing, and returns None.
+    target.islink(some_file)    # Returns True/False, because feature is enabled by default if not specified in config.
+
+
+
+Test Results
+------------
+
+After the tests are executed, the script exits with a non-zero exit code if any failure
+occurred during test execution. Moreover, when *all* tests are executed
+(i.e., *systemtests* and *sdktests*) and if failure occurred in both, then the script exits
+with the largest exit code.
+
+With the --result-dir you specify the directpry where the result of the execution is run.
+The reports generated are explained in :ref: 'reporting section <reports>'
+
+.. _virtual_target_tests:
+
+Virtual target test execution
+=============================
+
+-  Download the images and SDK for *vmwx86* target
+-  Run the following command (or just follow the `Local Test Execution`_ steps).
+
+   .. code-block:: bash
+
+     $ ./execute_tests.sh --tests target \
+                          --test-script /path/to/script.py
+
+
+Hardware target test execution
+==============================
+
+TODO (Not yet available)
+
+
+**************
+Test packaging
+**************
+
+In order to be picked up by the build system and test runner, recipes
+should package tests according to the following conventions. These steps
+are not required when using the test suite generation, but only when
+using advanced Python test scripts.
+
+.. _convention:
+
+File names
+==========
+
+All test scripts must end with ``_tests.py``.
+
+System tests
+============
+
+Variables and helper tasks are provided via the “systemtest.bbclass”
+from the `meta-mgu-swint-testing`_ layer. Test scripts have to be
+installed into the directory ``${SYSTEM_TESTS_PATH}`` and the resulting
+package name should equal ``${PN}-systemtests`` . This
+package is installed on the test runner and then used for test
+execution. If additional files are required on the target
+(e.g. fixtures, test binaries), they should be packaged into a package named
+``${PN}-systemtests-targetfiles``. Additional testing
+target runtime dependencies can be specified by extending
+``RDEPENDS_${PN}-systemtests-targetfiles``.
+
+To make the build system aware of the test packages and install them
+into the correct artifacts (sdk, target images) the packages need to be added
+to the correct package groups. Therefore *bbappend* files need to be created for the
+package groups in the layer.
+
+*Package groups:*
+
+-  ``recipes-core/packagegroups/packagegroup-systemtests.bbappend``
+   Contains all the systemtests packages.
+-  ``recipes-core/packagegroups/packagegroup-systemtests-targetfiles.bbappend``
+   Contains the targetfiles packages that are required by the systemtests.
+
+:Example:
+
+The following lines need to be added to the package recipe:
+
+::
+
+   inherit systemtest
+
+   do_install_systemtests() {
+       # add the commands to install the *_tests.py files to ${D}${SYSTEM_TESTS_PATH} here
+       install -m0644 ${S}/tests/BAT/systemtests/*.py ${D}${SYSTEM_TESTS_PATH}
+       # add the commands to install all test binaries to ${D}${SYSTEM_TESTS_TARGET_FILES_PATH}
+   }
+
+The ``packagegroup-systemtests.bbappend`` file might look like this:
+
+::
+
+   RDEPENDS_${PN} += "\
+                     <your-package>-systemtests \
+                     "
+
+The ``packagegroup-systemtests-targetfiles.bbappend`` file might look like this:
+
+::
+
+   RDEPENDS_${PN} += "\
+                     <your-package>-systemtests-targetfiles \
+                     "
+
+SDK tests
+=========
+
+Variables and helper tasks are provided via the “sdktest.bbclass” from
+the `meta-mgu-swint-testing`_ layer. SDK test suites should be installed
+under ``${SDK_TESTS_PATH}`` and packaged into a package named
+``${PN}-sdktests``.
+
+*Package group:*
+
+-  ``recipes-core/packagegroups/packagegroup-sdktests.bbappend``
+
+.. _meta-mgu-swint-testing: https://asc.bmwgroup.net/gerrit/gitweb?p=ascgit094.meta-mgu-swint-testing.git;a=shortlog;h=HEAD
+.. _python-nose: https://nose.readthedocs.org/en/latest/
+.. _@TargetCommon._optional_feature: api/api.html#mtee.testing.targets.target_common.TargetCommon._optional_feature
+.. _@ActionExecutor: api/api.html#mtee.tools.action_executor.ActionExecutor

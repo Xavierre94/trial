@@ -1,0 +1,474 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>xPAD Test Execution Environment (MTEE) &mdash; xtee_documentation 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="xtee_documentation 1.0 documentation" href="index.html" />
+    <link rel="next" title="Test suites and test management for MGU CI test executions" href="testmanagement.html" />
+    <link rel="prev" title="Setup for xPAD Test Execution Environment" href="setup.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="xpad-test-execution-environment-mtee">
+<h1>xPAD Test Execution Environment (MTEE)<a class="headerlink" href="#xpad-test-execution-environment-mtee" title="Permalink to this headline">¶</a></h1>
+<p>xTEE is a python module and a collection of plugins for <a class="reference external" href="https://nose.readthedocs.org/en/latest/">python-nose</a> to
+support execution and reporting of embedded tests in a Continuous Integration
+infrastructure and locally.</p>
+<p>xTEE can be thought about as having 2 primary components - the <cite>test runner</cite> and
+the <cite>Target</cite>. In essence, xTEE provides a way to invoke the <cite>test runner</cite>, which
+in turn configures and executes tests on the <cite>Target</cite>. The test runner execution
+can be controlled with a variety of command line arguments. It can also be
+configured using configuration files/environment variables that influence the
+type of tests, the test execution environment, as well as the choice of target
+for tests execution.</p>
+<div class="section" id="types-of-tests">
+<h2>Types of tests<a class="headerlink" href="#types-of-tests" title="Permalink to this headline">¶</a></h2>
+<p>There are two different types of tests that are currently supported.</p>
+<div class="section" id="system-tests">
+<span id="id1"></span><h3>System tests<a class="headerlink" href="#system-tests" title="Permalink to this headline">¶</a></h3>
+<p>System tests test the behaviour of a component on the Target. Test
+execution is driven from a test runner which has control over the system
+under test. A library provides access to certain target functionality
+(e.g. file download / upload, tracing, command execution, …). To see more
+functions in this library, click <span class="xref std std-ref">here</span>.</p>
+</div>
+<div class="section" id="sdk-tests">
+<span id="id2"></span><h3>SDK tests<a class="headerlink" href="#sdk-tests" title="Permalink to this headline">¶</a></h3>
+<p>SDK tests verify that a component can be used from within the SDK
+context. In case of a library, an SDK test would typically verify that
+compilation against the library is possible. If the component provides a
+code generator, the test would verify that the code generation is
+possible from the SDK.</p>
+</div>
+<div class="section" id="post-tests">
+<h3>Post-tests<a class="headerlink" href="#post-tests" title="Permalink to this headline">¶</a></h3>
+<p>Special tests could be run after normal test execution has finished. Typical
+example is checking for result file size. Note that the target is already
+shut down during the post-test run.</p>
+</div>
+</div>
+<div class="section" id="test-execution">
+<h2>Test Execution<a class="headerlink" href="#test-execution" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="local-test-execution">
+<h3>Local Test Execution<a class="headerlink" href="#local-test-execution" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="prerequisites">
+<span id="id3"></span><h4>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h4>
+<p>Before running tests, make sure that the following archive files are available.</p>
+<ul>
+<li><p class="first"><em>Images</em></p>
+<p>Depending on the test target, the images archive contains files for either <em>virtual</em> or
+<em>hardware</em> target.</p>
+</li>
+<li><p class="first"><em>SDK</em> (optional, only if tests against the sdk should be run)</p>
+<p>The <em>sdk</em> archive based on the target needs to be available.</p>
+</li>
+<li><p class="first"><em>IPK</em></p>
+<p>The <em>ipk</em> archive based on the target needs to be available. The tar ball has been replaced with
+a folder containing the IPKs.</p>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All archive files should be matching the target. All three archives, <em>images</em>, <em>sdk</em> and
+<em>ipk</em>, are required regardless of the test type.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<p>After downloading the prerequisite files for <em>virtual</em> target the directory structure should be as listed below:</p>
+<div class="highlight-python"><div class="highlight"><pre>deploy/
+├── images
+|    ├── hpad-a1-64-abl (ext4 image and kernels)
+├── sdk (compiled sdk, only if needed)
+└── ipk (only if needed)
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-use-xtee">
+<h4>How to use xTEE<a class="headerlink" href="#how-to-use-xtee" title="Permalink to this headline">¶</a></h4>
+<ul>
+<li><p class="first"><em>Run tests series</em></p>
+<div class="highlight-bash"><div class="highlight"><pre>$ docker run --rm -it --privileged <span class="se">\</span>
+        -e <span class="nv">USER_UID</span><span class="o">=</span><span class="sb">`</span>id -u<span class="sb">`</span> <span class="se">\</span>
+        -e <span class="nv">USER_GID</span><span class="o">=</span><span class="sb">`</span>id -g<span class="sb">`</span> <span class="se">\</span>
+        -e <span class="nv">USER_NAME</span><span class="o">=</span><span class="k">$(</span>USER<span class="k">)</span> <span class="se">\</span>
+        -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>:/workspace <span class="se">\</span>
+        --env <span class="nv">no_proxy</span><span class="o">=</span><span class="k">$(</span>NO_PROXY<span class="k">)</span> --env <span class="nv">http_proxy</span><span class="o">=</span>http://qxnumber:password@192.109.190.88:8080/ --env <span class="nv">https_proxy</span><span class="o">=</span>http://qxnumber:password@192.109.190.88:8080/ <span class="se">\</span>
+        --env <span class="nv">NO_PROXY</span><span class="o">=</span><span class="k">$(</span>NO_PROXY<span class="k">)</span> --env <span class="nv">HTTP_PROXY</span><span class="o">=</span>http://qxnumber:password@192.109.190.88:8080/ --env <span class="nv">HTTPS_PROXY</span><span class="o">=</span>http://qxnumber:password@192.109.190.88:8080/ <span class="se">\</span>
+        -v /home/<span class="k">$(</span>USER<span class="k">)</span>/.netrc:/home/<span class="k">$(</span>USER<span class="k">)</span>/.netrc <span class="se">\</span>
+        -v /home/<span class="k">$(</span>USER<span class="k">)</span>/.ssh:/home/<span class="k">$(</span>USER<span class="k">)</span>/.ssh <span class="se">\</span>
+        system-test:latest /bin/bash -c <span class="se">\</span>
+        <span class="s2">&quot;install_test_tools.sh &amp;&amp; mkdir -p test-results-all &amp;&amp; system-test --test-suite all --test-dir /workspace/aas-platform-flash-systemtest/abac/systemtests/ --result-dir test-results-execution --target xpad-qemu&quot;</span>
+
+ The executed tests have to be inside the directory indicated in the --test-dir option and have the chain *test* in the name. Important is that the <span class="nb">test</span> directory has to be inside workspace.
+ Specifying all in the --test-suite option will run all <span class="nb">test</span> suites inside the given directory.
+</pre></div>
+</div>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Proxy settings and .netrc have to be passed to the docker container in order to have internet access and be able to download needed packages.</p>
+</div>
+<ul class="simple">
+<li><em>Run tests against the SDK</em></li>
+</ul>
+<blockquote>
+<div>Specify the kind of sdk you are using with the &#8211;sdk-type option [bmw|yocto] and place the sdk in the sdk folder as explained in :ref:&#8217;setup &lt;setup&gt;&#8217;.
+Using &#8211;sdk option, a custom directory can be specified for the sdk.</div></blockquote>
+<div class="highlight-bash"><div class="highlight"><pre>$ docker run --rm -it --privileged <span class="se">\</span>
+  -e <span class="nv">USER_UID</span><span class="o">=</span><span class="sb">`</span>id -u<span class="sb">`</span> <span class="se">\</span>
+  -e <span class="nv">USER_GID</span><span class="o">=</span><span class="sb">`</span>id -g<span class="sb">`</span> <span class="se">\</span>
+  -e <span class="nv">USER_NAME</span><span class="o">=</span><span class="k">$(</span>USER<span class="k">)</span> <span class="se">\</span>
+  -v <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>:/workspace <span class="se">\</span>
+  --env <span class="nv">no_proxy</span><span class="o">=</span><span class="k">$(</span>NO_PROXY<span class="k">)</span> --env <span class="nv">http_proxy</span><span class="o">=</span>http://qxnumber:password@192.109.190.88:8080/ --env <span class="nv">https_proxy</span><span class="o">=</span>http://qxnumber:password@192.109.190.88:8080/ <span class="se">\</span>
+  --env <span class="nv">NO_PROXY</span><span class="o">=</span><span class="k">$(</span>NO_PROXY<span class="k">)</span> --env <span class="nv">HTTP_PROXY</span><span class="o">=</span>http://qxnumber:password@192.109.190.88:8080/ --env <span class="nv">HTTPS_PROXY</span><span class="o">=</span>http://qxnumber:password@192.109.190.88:8080/ <span class="se">\</span>
+  -v /home/<span class="k">$(</span>USER<span class="k">)</span>/.netrc:/home/<span class="k">$(</span>USER<span class="k">)</span>/.netrc <span class="se">\</span>
+  -v /home/<span class="k">$(</span>USER<span class="k">)</span>/.ssh:/home/<span class="k">$(</span>USER<span class="k">)</span>/.ssh <span class="se">\</span>
+  system-test:latest /bin/bash -c <span class="se">\</span>
+  <span class="s2">&quot;install_test_tools.sh &amp;&amp; mkdir -p test-results-all &amp;&amp; system-test --test-suite all --test-dir /workspace/aas-platform-flash-systemtest/abac/systemtests/ --result-dir test-results-execution --target xpad-qemu --sdk-type bmw&quot;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Do not rename any of the files and folders, otherwise the execution will not work.</p>
+</div>
+<ul>
+<li><p class="first"><em>Filter Testcases</em></p>
+<p>It is possible to filter tests by giving the <em>&#8211;test-packages</em> option.
+The example below would run <em>only</em> test cases matching the test packages
+filter by searching recursively for all Python test scripts
+(following the <a class="reference internal" href="#convention"><span>naming convention</span></a>) in the
+<code class="docutils literal"><span class="pre">/usr/share/bci-test-component/</span></code> and <code class="docutils literal"><span class="pre">/usr/share/core-test-suite</span></code> directories.
+For relative paths, the default test paths or the path specified by <em>&#8211;test-dir</em> are prepended.</p>
+</li>
+</ul>
+<div class="highlight-bash"><div class="highlight"><pre>$ system-test --test-suite all --result-dir test-results-execution --target xpad-qemu --test-packages bci-test-component,/usr/share/core-test-suite
+</pre></div>
+</div>
+<p>The test packages (one package per line) can be listed in a file
+and the script will load it. Run <code class="docutils literal"><span class="pre">system-test</span></code> with
+<em>&#8211;test-suite</em> and without the <em>&#8211;test-packages</em> option, then
+the script will search for the file containing path to test packages in the
+<code class="docutils literal"><span class="pre">test-dir</span></code> folder of the target directory.</p>
+<p>Please be careful when combining the <em>&#8211;test-suite</em> and <em>&#8211;test-packages</em>
+options. In this case the test runner tries to load the filters from the package
+files first and afterwards the test-package filters are applied. This means
+that filters given by <em>&#8211;test-packages</em> can only further restrict the already
+filtered subset of tests. Including additional tests is not possible with this
+combination.</p>
+<div class="highlight-python"><div class="highlight"><pre>$ system-test --tests all --test-suite BAT
+</pre></div>
+</div>
+<p>The above command will look for <code class="docutils literal"><span class="pre">/path/to/target_dir/test-suites/BAT</span></code> file and run
+all tests matching the attribute filter from this file. In addition it will look for the files
+<code class="docutils literal"><span class="pre">/path/to/target_dir/test-suites/BAT-sdktests</span></code> and <code class="docutils literal"><span class="pre">/path/to/target_dir/test-suites/BAT-systemtests</span></code>.
+If the files exist, then the filters listed in them will be applied. Otherwise, no filter will be applied and
+all tests (following the <a class="reference internal" href="#convention"><span>naming convention</span></a>) in <code class="docutils literal"><span class="pre">/usr</span></code> and
+<code class="docutils literal"><span class="pre">/opt/nativesysroot/usr</span></code> will be executed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Customize location of the test-suites folder with <em>&#8211;test-dir</em> option. This will also customize
+the test-scripts location. In single execution, running of tests installed in the SDK and from
+an external folder is not supported.</p>
+</div>
+<ul>
+<li><p class="first"><em>Configure Target features for test suites</em></p>
+<p>It is possible to enable or disable the optional feature methods for a target
+depending on the testsuite being executed via a configuration file. This file
+should be named <cite>&lt;test-suite-name&gt;-conf.json</cite> and should be placed under the
+test-suites directory. For example, the <cite>BAT</cite> testsuite feature configuration
+file would be:</p>
+</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>my_test_dir
+|__ mgu-15w35.4-3-5-vmwx86-images.tar.gz
+|__ mgu-15w35.4-3-5-vmwx86-images
+|   |__ scripts
+|   |   |__ execute_tests.sh
+|   |__ test-suites
+│   │   |__ BAT
+|   |   |__ BAT-conf.json
+|   |__ versions.txt
+|   |__ vmwx86
+...
+</pre></div>
+</div>
+<p>The configuration file should be a json formatted file containing the target
+type and the corresponding feature flags, as shown below</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+  &#39;VMWx86Target&#39; : {&#39;reboot&#39; : False},
+  &#39;MGUHighTarget&#39; : {&#39;some_fancy_feature&#39; : False},
+  ...
+}
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<ul class="last simple">
+<li>The configuration here will only affect the optional feature methods (ie:
+methods defined with the <a class="reference external" href="api/api.html#mtee.testing.targets.target_common.TargetCommon._optional_feature">&#64;TargetCommon._optional_feature</a> decorator).</li>
+<li>Currently all target feature methods are <em>enabled</em> by default, so this
+configuration is really only necessary if one wishes to disable an
+optional feature.</li>
+<li>Disabling a feature implies that calling the feature method from within a
+test does nothing, whereas enabling a feature implies that the method will
+actally be invoked when called.</li>
+</ul>
+</div>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">If multiple testsuites are specified in the test runner command line, the
+feature configuration of only the <em>first</em> specific testsuite is applied.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<p>With the following json config:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s1">&#39;VMWx86Target&#39;</span> <span class="p">:</span> <span class="p">{</span><span class="s1">&#39;isfile&#39;</span> <span class="p">:</span> <span class="bp">True</span><span class="p">},</span>
+  <span class="s1">&#39;VMWx86Target&#39;</span> <span class="p">:</span> <span class="p">{</span><span class="s1">&#39;isdir&#39;</span> <span class="p">:</span> <span class="bp">False</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In your test case:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">target</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">some_file</span><span class="p">)</span>    <span class="c1"># Returns True/False as expected.</span>
+<span class="n">target</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">some_path</span><span class="p">)</span>     <span class="c1"># Does nothing, and returns None.</span>
+<span class="n">target</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">some_file</span><span class="p">)</span>    <span class="c1"># Returns True/False, because feature is enabled by default if not specified in config.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="test-results">
+<h4>Test Results<a class="headerlink" href="#test-results" title="Permalink to this headline">¶</a></h4>
+<p>After the tests are executed, the script exits with a non-zero exit code if any failure
+occurred during test execution. Moreover, when <em>all</em> tests are executed
+(i.e., <em>systemtests</em> and <em>sdktests</em>) and if failure occurred in both, then the script exits
+with the largest exit code.</p>
+<p>With the &#8211;result-dir you specify the directpry where the result of the execution is run.
+The reports generated are explained in :ref: &#8216;reporting section &lt;reports&gt;&#8217;</p>
+</div>
+</div>
+<div class="section" id="virtual-target-test-execution">
+<span id="virtual-target-tests"></span><h3>Virtual target test execution<a class="headerlink" href="#virtual-target-test-execution" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">Download the images and SDK for <em>vmwx86</em> target</p>
+</li>
+<li><p class="first">Run the following command (or just follow the <a class="reference internal" href="#local-test-execution">Local Test Execution</a> steps).</p>
+<div class="highlight-bash"><div class="highlight"><pre>$ ./execute_tests.sh --tests target <span class="se">\</span>
+                     --test-script /path/to/script.py
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="hardware-target-test-execution">
+<h3>Hardware target test execution<a class="headerlink" href="#hardware-target-test-execution" title="Permalink to this headline">¶</a></h3>
+<p>TODO (Not yet available)</p>
+</div>
+</div>
+<div class="section" id="test-packaging">
+<h2>Test packaging<a class="headerlink" href="#test-packaging" title="Permalink to this headline">¶</a></h2>
+<p>In order to be picked up by the build system and test runner, recipes
+should package tests according to the following conventions. These steps
+are not required when using the test suite generation, but only when
+using advanced Python test scripts.</p>
+<div class="section" id="file-names">
+<span id="convention"></span><h3>File names<a class="headerlink" href="#file-names" title="Permalink to this headline">¶</a></h3>
+<p>All test scripts must end with <code class="docutils literal"><span class="pre">_tests.py</span></code>.</p>
+</div>
+<div class="section" id="id4">
+<h3>System tests<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>Variables and helper tasks are provided via the “systemtest.bbclass”
+from the <a class="reference external" href="https://asc.bmwgroup.net/gerrit/gitweb?p=ascgit094.meta-mgu-swint-testing.git;a=shortlog;h=HEAD">meta-mgu-swint-testing</a> layer. Test scripts have to be
+installed into the directory <code class="docutils literal"><span class="pre">${SYSTEM_TESTS_PATH}</span></code> and the resulting
+package name should equal <code class="docutils literal"><span class="pre">${PN}-systemtests</span></code> . This
+package is installed on the test runner and then used for test
+execution. If additional files are required on the target
+(e.g. fixtures, test binaries), they should be packaged into a package named
+<code class="docutils literal"><span class="pre">${PN}-systemtests-targetfiles</span></code>. Additional testing
+target runtime dependencies can be specified by extending
+<code class="docutils literal"><span class="pre">RDEPENDS_${PN}-systemtests-targetfiles</span></code>.</p>
+<p>To make the build system aware of the test packages and install them
+into the correct artifacts (sdk, target images) the packages need to be added
+to the correct package groups. Therefore <em>bbappend</em> files need to be created for the
+package groups in the layer.</p>
+<p><em>Package groups:</em></p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">recipes-core/packagegroups/packagegroup-systemtests.bbappend</span></code>
+Contains all the systemtests packages.</li>
+<li><code class="docutils literal"><span class="pre">recipes-core/packagegroups/packagegroup-systemtests-targetfiles.bbappend</span></code>
+Contains the targetfiles packages that are required by the systemtests.</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Example:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<p>The following lines need to be added to the package recipe:</p>
+<div class="highlight-python"><div class="highlight"><pre>inherit systemtest
+
+do_install_systemtests() {
+    # add the commands to install the *_tests.py files to ${D}${SYSTEM_TESTS_PATH} here
+    install -m0644 ${S}/tests/BAT/systemtests/*.py ${D}${SYSTEM_TESTS_PATH}
+    # add the commands to install all test binaries to ${D}${SYSTEM_TESTS_TARGET_FILES_PATH}
+}
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">packagegroup-systemtests.bbappend</span></code> file might look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>RDEPENDS_${PN} += &quot;\
+                  &lt;your-package&gt;-systemtests \
+                  &quot;
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">packagegroup-systemtests-targetfiles.bbappend</span></code> file might look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>RDEPENDS_${PN} += &quot;\
+                  &lt;your-package&gt;-systemtests-targetfiles \
+                  &quot;
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h3>SDK tests<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>Variables and helper tasks are provided via the “sdktest.bbclass” from
+the <a class="reference external" href="https://asc.bmwgroup.net/gerrit/gitweb?p=ascgit094.meta-mgu-swint-testing.git;a=shortlog;h=HEAD">meta-mgu-swint-testing</a> layer. SDK test suites should be installed
+under <code class="docutils literal"><span class="pre">${SDK_TESTS_PATH}</span></code> and packaged into a package named
+<code class="docutils literal"><span class="pre">${PN}-sdktests</span></code>.</p>
+<p><em>Package group:</em></p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">recipes-core/packagegroups/packagegroup-sdktests.bbappend</span></code></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bmw_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">xPAD Test Execution Environment (MTEE)</a><ul>
+<li><a class="reference internal" href="#types-of-tests">Types of tests</a><ul>
+<li><a class="reference internal" href="#system-tests">System tests</a></li>
+<li><a class="reference internal" href="#sdk-tests">SDK tests</a></li>
+<li><a class="reference internal" href="#post-tests">Post-tests</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#test-execution">Test Execution</a><ul>
+<li><a class="reference internal" href="#local-test-execution">Local Test Execution</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference internal" href="#how-to-use-xtee">How to use xTEE</a></li>
+<li><a class="reference internal" href="#test-results">Test Results</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#virtual-target-test-execution">Virtual target test execution</a></li>
+<li><a class="reference internal" href="#hardware-target-test-execution">Hardware target test execution</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#test-packaging">Test packaging</a><ul>
+<li><a class="reference internal" href="#file-names">File names</a></li>
+<li><a class="reference internal" href="#id4">System tests</a></li>
+<li><a class="reference internal" href="#id5">SDK tests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="setup.html" title="previous chapter">Setup for xPAD Test Execution Environment</a></li>
+      <li>Next: <a href="testmanagement.html" title="next chapter">Test suites and test management for MGU CI test executions</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/general_usage.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Patricia Javierre.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/general_usage.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

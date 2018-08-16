@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to xtee_documentation’s documentation! &mdash; xtee_documentation 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="xtee_documentation 1.0 documentation" href="#" />
+    <link rel="next" title="Setup for xPAD Test Execution Environment" href="setup.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-xtee-documentation-s-documentation">
+<h1>Welcome to xtee_documentation&#8217;s documentation!<a class="headerlink" href="#welcome-to-xtee-documentation-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup for xPAD Test Execution Environment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#preconditions">Preconditions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="setup.html#workspace-structure-for-xtee">Workspace structure for xTEE</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html#final-xtee-installation">Final xTEE installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="general_usage.html">xPAD Test Execution Environment (MTEE)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="general_usage.html#types-of-tests">Types of tests</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="general_usage.html#system-tests">System tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="general_usage.html#sdk-tests">SDK tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="general_usage.html#post-tests">Post-tests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="general_usage.html#test-execution">Test Execution</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="general_usage.html#local-test-execution">Local Test Execution</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="general_usage.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="general_usage.html#how-to-use-xtee">How to use xTEE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="general_usage.html#test-results">Test Results</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="general_usage.html#virtual-target-test-execution">Virtual target test execution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="general_usage.html#hardware-target-test-execution">Hardware target test execution</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="general_usage.html#test-packaging">Test packaging</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="general_usage.html#file-names">File names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="general_usage.html#id4">System tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="general_usage.html#id5">SDK tests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="testmanagement.html">Test suites and test management for xPAD CI test executions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="testmanagement.html#test-management">Test management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="testmanagement.html#basics">Basics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testmanagement.html#test-suite-definition">Test suite definition</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="testmanagement.html#test-suite-filter-definition-file">Test suite filter definition file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="testmanagement.html#test-suite-test-script-package-file">Test suite test script/package file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="testmanagement.html#test-suite-target-specific-test-script-package-file">Test suite target specific test script/package file</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="testmanagement.html#adding-test-cases-to-test-suites">Adding test cases to test suites</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="testmanagement.html#test-suites">Test suites</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="testmanagement.html#test-suites-used-in-ci">Test suites used in CI</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="testmanagement.html#how-to-use-python-modules-with-external-tests">How to use Python modules with external tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testmanagement.html#glossary">Glossary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="test_documentation_and_reporting.html">Test documentation and reporting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="test_documentation_and_reporting.html#metadata-for-tests">Metadata for tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="test_documentation_and_reporting.html#metadata-for-google-tests-scripts">Metadata for Google Tests scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="test_documentation_and_reporting.html#test-documentation-in-reports">Test documentation in reports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="test_documentation_and_reporting.html#best-practices-for-other-attributes-to-be-used-with-tests">Best practices for other attributes to be used with tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="test_documentation_and_reporting.html#test-results-reporting">Test results reporting</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="#">
+              <img class="logo" src="_static/bmw_logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="setup.html" title="next chapter">Setup for xPAD Test Execution Environment</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Patricia Javierre.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/index.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

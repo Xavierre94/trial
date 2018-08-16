@@ -1,0 +1,320 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Setup for xPAD Test Execution Environment &mdash; xtee_documentation 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="xtee_documentation 1.0 documentation" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="setup-for-xpad-test-execution-environment">
+<h1>Setup for xPAD Test Execution Environment<a class="headerlink" href="#setup-for-xpad-test-execution-environment" title="Permalink to this headline">¶</a></h1>
+<p>This documentation applies for the setup of xTEE in August 2018, it changes
+everyday and an easiest way of installation is under development, so make sure
+to update your local xTEE repositories.</p>
+<div class="section" id="preconditions">
+<h2>Preconditions<a class="headerlink" href="#preconditions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Have internet access inside the Ubuntu Vm (this guide uses Ubuntu 16.04). For that, configure your proxy environment variables editing your /etc/environment file and include:</li>
+</ul>
+<div class="highlight-console"><div class="highlight"><pre><span class="go">http_proxy=http://qxnumber:password@proxy.muc:8080/</span>
+<span class="go">https_proxy= http://qxnumber:password@proxy.muc:8080/</span>
+<span class="go">ftp_proxy= http://qxnumber:password@proxy.muc:8080/</span>
+<span class="go">no_proxy=localhost,127.0.0.1,localaddress,.localdomain.com,asc-repo.bmwgroup.net</span>
+<span class="go">,asc.bmwgroup.net,b2b.bmwgroup.net,asc-int3.bmwgroup.net,</span>
+<span class="go">asc-repo-int3.bmwgroup.net,.muc,bmwgroup.net,cc-artifactory.bmwgroup.net,</span>
+<span class="go">cc-github.bmwgroup.net</span>
+
+<span class="go">HTTP_PROXY= http://qxnumber:password@proxy.muc:8080/</span>
+<span class="go">HTTPS_PROXY= http://qxnumber:password@proxy.muc:8080/</span>
+<span class="go">FTP_PROXY= http://qxnumber:password@proxy.muc:8080/</span>
+<span class="go">NO_PROXY=localhost,127.0.0.1,localaddress,.localdomain.com,asc-repo.bmwgroup.net</span>
+<span class="go">,asc.bmwgroup.net,b2b.bmwgroup.net,asc-int3.bmwgroup.net,</span>
+<span class="go">asc-repo-int3.bmwgroup.net,.muc,bmwgroup.net,cc-artifactory.bmwgroup.net,</span>
+<span class="go">cc-github.bmwgroup.net</span>
+</pre></div>
+</div>
+<ul>
+<li><p class="first">Install Docker and be able to run it without sudo. The idea of a docker container is having a &#8220;box&#8221; with everything we need inside it to run the tests against the target.
+* Refer to <a class="reference external" href="https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce">https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce</a></p>
+<div class="highlight-console"><div class="highlight"><pre><span class="go">sudo apt-get update</span>
+
+<span class="go">sudo apt-get install apt-transport-https ca-certificates curl software-properties-common</span>
+<span class="go">curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add –</span>
+
+<span class="go">Verify that you now have the key with the fingerprint 9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88, by searching for the last 8 characters of the fingerprint.</span>
+
+<span class="go">sudo apt-key fingerprint 0EBFCD88</span>
+
+<span class="go">    pub   4096R/0EBFCD88 2017-02-22</span>
+<span class="go">            Key fingerprint = 9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88</span>
+<span class="go">    uid                  Docker Release (CE deb) &lt;docker@docker.com&gt;</span>
+
+<span class="go">    sub   4096R/F273FCD8 2017-02-2</span>
+
+<span class="go">Add stable repository -&gt;</span>
+<span class="go">sudo add-apt-repository &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs)  stable</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>Install Docker Community edition: sudo apt-get install docker-ce</li>
+<li>Run without sudo and setup system-test container: the 0.1.3 version is the most stable one, HW will be available from 0.1.4.</li>
+</ul>
+<div class="highlight-console"><div class="highlight"><pre><span class="go">sudo docker login -–username $artifactory_username –-password $artifactory_password cc-artifactory.bmwgroup.net</span>
+
+<span class="go">cat /etc/group | grep docker</span>
+
+<span class="go">sudo groupadd docker</span>
+
+<span class="go">sudo gpasswd -a $USER docker</span>
+
+<span class="go">Logout and login again</span>
+
+<span class="go">Download the system-test docker container and tag it with “latest”</span>
+
+<span class="go">docker pull cc-artifactory.bmwgroup.net/xpad-docker-local/system-test:0.1.3</span>
+
+<span class="go">docker tag cc-artifactory.bmwgroup.net/xpad-docker-local/system-test:0.1.3 system-test:latest</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<div class="section" id="workspace-structure-for-xtee">
+<h3>Workspace structure for xTEE<a class="headerlink" href="#workspace-structure-for-xtee" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre>xpad
+|-- workspace
+    |__ src
+    |   |__ build
+    |       |__ template
+    |           |__ deploy
+    |               |__images
+    |               |   |__ hpad-a1-64-abl
+    |               |__sdk
+    |__ testing
+        |__ test-framework
+        |__ mtee_xpad
+        |__ tools
+            |__ mgu-can
+            |__ mgu_dlt
+            |__ reporting
+</pre></div>
+</div>
+</div></blockquote>
+<ul>
+<li><dl class="first docutils">
+<dt>hpad-a1-64-abl is the folder where xTEE searches for the image to run with qemu:</dt>
+<dd><ul class="first last">
+<li><p class="first">Releases can be found in: ..https://cc-artifactory.bmwgroup.net/artifactory/xpad-releases-local/hpad/1.xx.10/images</p>
+</li>
+<li><p class="first">Unzip the kernels folder.</p>
+</li>
+<li><dl class="first docutils">
+<dt>Mount the image using the hpad_appl_image.tar.gz into an ext4 image and name it</dt>
+<dd><p class="first last"><em>hpad-a1-64-abl</em>.ext4</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>sdk: folder for the hPAD sdk 8not compulsory int he current version.</dt>
+<dd><ul class="first last">
+<li><p class="first">SDK versions: <a class="reference external" href="https://cc-artifactory.bmwgroup.net/artifactory/xpad-releases-local/">https://cc-artifactory.bmwgroup.net/artifactory/xpad-releases-local/</a></p>
+</li>
+<li><dl class="first docutils">
+<dt>Unzip the .tar.gz file of the sdk and compile it using:</dt>
+<dd><p class="first last">bazel build //...</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">Compiling will generate symlinks to the output folders, but Docker doesn&#8217;t
+understand symlinks so far, so we need to replace the symlinks with the actual files.
+Do this with bazel-out and tools.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>test-framework: mtee testing framework.</dt>
+<dd><ul class="first simple">
+<li>Checkout here the mtee-testing repo.</li>
+<li>Inside testing folder:</li>
+</ul>
+<div class="last highlight-console"><div class="highlight"><pre><span class="go">git clone https://asc-repo.bmwgroup.net/gerrit/ascgit098.testing.mtee test-framework</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>mtee_xpad: mtee_xpad plugin</dt>
+<dd><ul class="first simple">
+<li>Inside the testing folder:</li>
+</ul>
+<div class="last highlight-console"><div class="highlight"><pre><span class="go">git clone git@cc-github.bmwgroup.net:xpad/mtee-xpad-plugin.git mtee_xpad</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>mgu-can:</dt>
+<dd><ul class="first simple">
+<li>Inside the tools folder:</li>
+</ul>
+<div class="last highlight-console"><div class="highlight"><pre><span class="go">git clone https://asc-repo.bmwgroup.net/gerrit/ascgit098.testing.mgu-can mgu-can</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>mgu_dlt:</dt>
+<dd><ul class="first simple">
+<li>Inside the tools folder:</li>
+</ul>
+<div class="last highlight-console"><div class="highlight"><pre><span class="go">git clone https://asc-repo.bmwgroup.net/gerrit/ascgit098.testing.mgu-dlt mgu-dlt</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Reporting:</dt>
+<dd><ul class="first simple">
+<li>Inside the tools folder:</li>
+</ul>
+<div class="last highlight-console"><div class="highlight"><pre><span class="go">git clone https://asc-repo.bmwgroup.net/gerrit/ascgit098.testing.reporting</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="final-xtee-installation">
+<h2>Final xTEE installation<a class="headerlink" href="#final-xtee-installation" title="Permalink to this headline">¶</a></h2>
+<p>Run the following commands inside the workspace folder to finish the installation and check that no errors occur.</p>
+<div class="highlight-console"><div class="highlight"><pre><span class="go">docker run --rm -t --privileged -v $(pwd):/workspace system-test:latest \</span>
+<span class="go">/bin/bash -c &quot;install_test_tools.sh \</span>
+<span class="go">&amp;&amp; cd /workspace/testing/test-framework \</span>
+<span class="go">&amp;&amp; mkdir -p junit-reports \</span>
+<span class="go">&amp;&amp; nosetests tests/unittests&quot;</span>
+
+<span class="go">docker run --rm -t --privileged -v $(pwd):/workspace system-test:latest \</span>
+<span class="go">/bin/bash -c &quot;install_test_tools.sh \</span>
+<span class="go">&amp;&amp; cd /workspace/testing/test-framework \</span>
+<span class="go">&amp;&amp; pep8&quot;</span>
+
+<span class="go">docker run --rm -t --privileged -v $(pwd):/workspace system-test:latest \</span>
+<span class="go">/bin/bash -c &quot;install_test_tools.sh \</span>
+<span class="go">&amp;&amp; cd /workspace/testing/test-framework \</span>
+<span class="go">&amp;&amp; pylint --rcfile=setup.cfg mtee&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/bmw_logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Setup for xPAD Test Execution Environment</a><ul>
+<li><a class="reference internal" href="#preconditions">Preconditions</a><ul>
+<li><a class="reference internal" href="#workspace-structure-for-xtee">Workspace structure for xTEE</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#final-xtee-installation">Final xTEE installation</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/setup.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Patricia Javierre.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/setup.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
