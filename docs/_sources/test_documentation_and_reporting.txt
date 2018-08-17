@@ -24,25 +24,9 @@ the test cases. Depending on the type of test it might be mandatory to define so
 
     @metadata(testsuite=["BAT", "domain", ],
               component="dummy",
-              domain="SWINT",
               teststage="integration",
-              testlevel="ENG_07",
               test_case_id="some id",
               testtype="functional",
-              dependencies={"MGU": {"ALM": ["ALMID1", "ALMID2", ],
-                                    "ELVIS": ["ELVISID1", "ELVISID2", "ELVISID3", ],
-                                    "JIRA": ["JIRAID1", "JIRAID2", ], },
-                            },
-              traceability={"MGU": {"HLF": ["HLF1", "HLF2", ],
-                                    "DOORS": ["requirement 1", "requirement 2", ],
-                                    "JIRA": ["JIRA1", "JIRA2", ],
-                                    "ELVIS": ["ELVIS", ],
-                                    "EA": ["EA-ID", ],
-                                    },
-                            "RSE": {"ELVIS": ["ELVIS", ],
-                                    "JIRA": ["BHU-123", ],
-                                    "EA": ["EA-ID", ], },
-                            },
               test_description="""This test class verifies:
                                   - nothing
                                   - more nothing""")
@@ -78,25 +62,10 @@ string as ``key``, e.g. ``RecordProperty("metadata.sub1.sub2.key", "Prop");``.
     TEST(theta, Negative){
         RecordProperty("metadata.testsuite", "BAT, domain");
         RecordProperty("metadata.component", "dummy");
-        RecordProperty("metadata.domain", "SWINT");
         RecordProperty("metadata.teststage, "integration");
-        RecordProperty("metadata.testlevel", "ENG_07");
+        RecordProperty("metadata.domain", "onedomain");
         RecordProperty("metadata.test_case_id", "some id");
-        RecordProperty("metadata.testtype", "functional");
-        RecordProperty("metadata.dependencies.MGU.ALM", "ALMID1, ALMID2");
-        RecordProperty("metadata.dependencies.MGU.ELVIS", "ELVISID1, ELVISID2, ELVISID3");
-        RecordProperty("metadata.dependencies.MGU.JIRA", "JIRAID1, JIRAID2");
-        RecordProperty("metadata.traceability.MGU.HLF", "HLF1, HLF2");
-        RecordProperty("metadata.traceability.MGU.DOORS", "requirement1, requirement2");
-        RecordProperty("metadata.traceability.MGU.JIRA", "JIRA1, JIRA2");
-        RecordProperty("metadata.traceability.MGU.ELVIS", "ELVIS");
-        RecordProperty("metadata.traceability.MGU.EA", "EA-ID");
-        RecordProperty("metadata.traceability.RSE.ELVIS", "ELVIS");
-        RecordProperty("metadata.traceability.RSE.JIRA", "BHU-123");
-        RecordProperty("metadata.traceability.RSE.EA", "EA-ID");
-        RecordProperty("metadata.test_description", "his test class verifies:\n"
-                                                    " - nothing\n"
-                                                    " - more nothing\n"
+
         EXPECT_EQ(-1, theta(-33));
     }
 
@@ -106,6 +75,24 @@ Test documentation in reports
 =============================
 
 Test reports created from xTEE test runs will have the metadata in the reports.
+
+:Example for text only reports:
+
+::
+
+    Testsuite:   sdktests|systemtests--vmwx86
+    Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+    --------- ----------- ---------
+
+    Testcase:   BAT.mytest.TestTargetSystem.test_example took 0.000
+          testsuite: ['BAT', 'domain']
+          test_description: This test class verifies:
+                                  - nothing
+                                  - more nothing
+          domain: onedomain
+          component: dummy
+          teststage: integration
+          test_case_id: some id
 
 
 Best practices for other attributes to be used with tests
@@ -139,15 +126,6 @@ matching test cases. Some best practices on attribute usage are given here.
     - ``teststage="system"``
     - ``teststage="regression"``
 
-- Test level
-    Attribute ``testlevel`` should be used to define the test level based on the definition in
-    automotive SPICE. Possible values:
-
-    - ``testlevel="ENG_07"``
-    - ``testlevel="ENG_08"``
-    - ``testlevel="ENG_09"``
-    - ``testlevel="ENG_10"``
-
 - Test suite
     Attribute ``testsuite`` can also be used with values other than ``BAT`` or ``domain``.
     E.g. a tester could define a ``stress`` test suite.
@@ -163,14 +141,13 @@ matching test cases. Some best practices on attribute usage are given here.
 
 .. code-block:: python
 
-    @metadata(testsuite=["BAT", "domain", ],
-              component="common-api-c++-dbus",
-              domain="SYSINFRA",
+    @metadata(testsuite=["Dummy"],
+              component="common-api-c++",
+              domain="AAS",
               duration="short",
               priority=1,
               teststage="integration",
-              testlevel="ENG_07",
-              test_description="This is the integration test for CommonAPI-DBus bindings")
+              test_description="This is the integration test for CommonAPI-C++ bindings")
     def test_integ_capi_dbus():
         pass
 
